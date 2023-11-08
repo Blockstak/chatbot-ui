@@ -12,11 +12,14 @@ type UIState = {
   modalBoolObject: {
     [key: string]: boolean;
   };
+
+  showSidebar: boolean;
 };
 
 const initialState: UIState = {
   pageTitles: {},
   expandedLinks: {},
+  showSidebar: false,
   modalBoolObject: {},
 };
 
@@ -36,12 +39,16 @@ const uiSlice = createSlice({
       const { linkName, expanded } = action.payload;
       state.expandedLinks[linkName] = expanded;
     },
+
+    setShowSidebar(state, action: PayloadAction<boolean>) {
+      state.showSidebar = action.payload;
+    },
   },
 
   extraReducers: (builder) => {},
 });
 
-export const { setOpenModal, setCloseModal, setExpandedLinks } =
+export const { setOpenModal, setCloseModal, setExpandedLinks, setShowSidebar } =
   uiSlice.actions;
 
 export default uiSlice.reducer;

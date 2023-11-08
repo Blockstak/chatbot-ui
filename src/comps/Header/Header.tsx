@@ -28,7 +28,7 @@ export default function Header() {
             src="/user.jpeg"
             className="w-10 h-10 rounded-full object-cover object-center"
           />
-          <div className="text-zinc-100">Mayesha Hasan</div>
+          <div className="text-zinc-100">Header People</div>
         </div>
       </div>
     </nav>

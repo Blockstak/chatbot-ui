@@ -1,4 +1,3 @@
-import jwt from "jsonwebtoken";
 import Button from "@ui/Button";
 import { useRouter } from "next/router";
 import { FcGoogle } from "react-icons/fc";
@@ -19,12 +18,13 @@ import { useState } from "react";
 
 import { HiCheck } from "react-icons/hi";
 import { useLoginMutation } from "@/api/auth";
-import { setUser, setToken } from "@/state/slices/authSlice";
 import * as CheckBox from "@radix-ui/react-checkbox";
-import { useAppDispatch } from "@/hooks/useStoreTypes";
+import { useAppDispatch, useAppSelector } from "@/hooks/useStoreTypes";
+import { setUser, setToken, setAuthenticated } from "@/state/slices/authSlice";
+import StaticLoader from "@/comps/ui/Loader/StaticLoader";
 
 const schema = z.object({
-  email: z.string().min(1).email("Please enter a valid email address"),
+  username: z.string().min(1),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters long")
@@ -37,7 +37,9 @@ export default function Login() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const [login, result] = useLoginMutation();
+  const [loading, setLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const { user } = useAppSelector((state) => state.auth);
 
   const form = useZodForm({
     schema: schema,
@@ -46,24 +48,24 @@ export default function Login() {
   const onSubmit: SubmitHandler<FormData> = async (data) => {
     try {
       const res = await login({
-        email: data.email,
+        username: data.username,
         password: data.password,
       }).unwrap();
 
-      if (res.token) {
-        dispatch(setToken(res.token));
-        window.sessionStorage.setItem("token", res.token);
-        const decoded = jwt.decode(res.token) as JwtPayload | null;
+      if (res.access && res.refresh) {
+        setLoading(true);
+        dispatch(setToken(res.access));
+        dispatch(setAuthenticated(true));
 
-        if (decoded) {
-          dispatch(
-            setUser({
-              username: decoded.sub,
-              user_type: decoded.user_type,
-            })
-          );
-        }
-        router.push("/accounts");
+        dispatch(
+          setUser({
+            ...user,
+            refresh_token: res.refresh,
+          })
+        );
+
+        window.sessionStorage.setItem("access_token", res.access);
+        router.push("/");
       }
     } catch (err: any) {
       showAlert(
@@ -73,6 +75,8 @@ export default function Login() {
     }
   };
 
+  if (loading) return <StaticLoader />;
+
   return (
     <Layout>
       <AuthContainer authText="Login" maxWidth="xl">
@@ -80,9 +84,9 @@ export default function Login() {
           <div className="px-4 py-2 w-full">
             <div className="relative">
               <TextInput
-                label="Email"
-                placeholder="john@doe.com"
-                {...form.register("email")}
+                label="Username"
+                placeholder="username"
+                {...form.register("username")}
               />
             </div>
           </div>
@@ -97,7 +101,7 @@ export default function Login() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-x-6 md:flex-row items-center justify-between px-4 py-2 w-full text-neutral-200 mb-2">
+          {/* <div className="flex flex-col gap-x-6 md:flex-row items-center justify-between px-4 py-2 w-full text-neutral-200 mb-2">
             <div className="flex items-center mb-2 md:mb-0">
               <CheckBox.Root
                 className="mr-1 flex h-4 w-4 appearance-none items-center justify-center rounded-sm bg-white data-[state=checked]:bg-daisy-bush-400 outline-none data-[state=unchecked]:border border-gray-300"
@@ -114,12 +118,11 @@ export default function Login() {
             <span className="inline-block text-daisy-bush-300 text-sm font-semibold cursor-pointer">
               <Link href={`/forgot-password`}>Forgot password?</Link>
             </span>
-          </div>
+          </div> */}
 
           <div className="px-4 py-2 text-neutral-200 font-medium">
             Not registered yet?{" "}
-            <Link href={`/auth/signup`} className="text-daisy-bush-300">
-              {" "}
+            <Link href={`/auth/register`} className="text-daisy-bush-300">
               Sign-up now
             </Link>
           </div>
@@ -128,13 +131,13 @@ export default function Login() {
             <Button
               intent={`primary`}
               className="w-full relative font-bold"
-              isLoading={result.isLoading}
+              isLoading={result.isLoading || form.formState.isSubmitting}
             >
               Continue
             </Button>
           </div>
 
-          <div className="px-4 flex justify-center items-center w-full my-4">
+          {/* <div className="px-4 flex justify-center items-center w-full my-4">
             <span className="mx-4 text-daisy-bush-400 text-3xl font-bold">
               OR
             </span>
@@ -153,7 +156,7 @@ export default function Login() {
               <IoLogoApple className="inline-block w-8 h-8 -ml-1" />
               <span className="ml-2">Sign In with Apple</span>
             </Button>
-          </div>
+          </div> */}
         </Form>
       </AuthContainer>
     </Layout>

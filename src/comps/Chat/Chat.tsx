@@ -21,7 +21,6 @@ const Chat = () => {
 
       <div className="p-4 sticky bottom-0 bg-neutral-800">
         <ChatInput />
-        {/* <Suggestions /> */}
       </div>
     </div>
   );

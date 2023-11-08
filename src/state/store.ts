@@ -20,9 +20,11 @@ import { setupListeners } from "@reduxjs/toolkit/query";
 
 import uiReducer from "./slices/uiSlice";
 import chatReducer from "./slices/chatSlice";
+import authReducer from "./slices/authSlice";
 
 const rootReducer = combineReducers({
   ui: uiReducer,
+  auth: authReducer,
   chat: chatReducer,
   [rootApi.reducerPath]: rootApi.reducer,
 });

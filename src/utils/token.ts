@@ -1,3 +1,3 @@
 export function getToken() {
-  return window.sessionStorage.getItem("token");
+  return window.sessionStorage.getItem("access_token") || "";
 }
