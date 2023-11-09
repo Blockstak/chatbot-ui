@@ -1,9 +1,8 @@
-import React from "react";
 import ChatContent from "./ChatContent";
 
 const ChatSpace = () => {
   return (
-    <div className="">
+    <div>
       <ChatContent type="user" />
       <ChatContent />
       <ChatContent type="user" />

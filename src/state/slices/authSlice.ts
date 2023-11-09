@@ -1,3 +1,4 @@
+import { authApi } from "@/api/auth";
 import { createSlice } from "@reduxjs/toolkit";
 
 type User = {

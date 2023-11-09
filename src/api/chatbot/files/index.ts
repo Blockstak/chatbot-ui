@@ -17,4 +17,4 @@ export const filesApi = rootApi.injectEndpoints({
   }),
 });
 
-export const {} = filesApi;
+export const { useGetFilesQuery, useUploadFilesMutation } = filesApi;

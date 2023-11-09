@@ -73,8 +73,8 @@ const ChatContent = ({ type = "bot" }: ChatContentProps) => {
           {type === "bot" && (
             <button
               onClick={() => {
-                // dispatch(setShowSidebar(!showSidebar));
-                setOpen(!open);
+                dispatch(setShowSidebar(!showSidebar));
+                // setOpen(!open);
               }}
               className="ml-auto w-min border border-daisy-bush-200 text-daisy-bush-200 rounded text-sm whitespace-nowrap px-4 py-3 font-medium"
             >

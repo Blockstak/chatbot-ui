@@ -7,7 +7,7 @@ import withAuth from "@/comps/HOC/withAuth";
 import { useGetTopicsQuery } from "@/api/chatbot/topics";
 import StaticLoader from "@/comps/ui/Loader/StaticLoader";
 
-function Home() {
+function TopicId() {
   const { isLoading } = useGetTopicsQuery();
   if (isLoading) return <StaticLoader />;
 
@@ -17,18 +17,14 @@ function Home() {
       <div className="relative md:ml-[20rem]">
         <div className="min-h-screen relative">
           <Header />
-          <div className="relative mx-auto w-full bg-neutral-800 custom-container h-full flex items-center justify-center">
-            <div>
-              <h2 className="text-center text-neutral-200 text-2xl md:text-4xl">
-                Please select a topic or create a new topic
-                <br /> from the sidebar to get started.
-              </h2>
-            </div>
+          <div className="relative mx-auto w-full bg-neutral-800 custom-container h-full flex items-end">
+            <Chat />
           </div>
         </div>
       </div>
+      <Sourcebar />
     </Layout>
   );
 }
 
-export default withAuth(Home);
+export default withAuth(TopicId);

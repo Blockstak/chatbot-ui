@@ -4,13 +4,12 @@ import { HiX } from "react-icons/hi";
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
 
 interface IModalProps {
-  row?: TableRow;
   label?: string;
   accessor?: string;
   onClick?: () => void;
 }
 
-const AlertModal = ({ row, accessor, onClick }: IModalProps) => {
+const AlertModal = ({ accessor, onClick }: IModalProps) => {
   return (
     <AlertDialog.Root>
       <AlertDialog.Trigger asChild>

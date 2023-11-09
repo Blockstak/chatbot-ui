@@ -3,7 +3,6 @@ import * as CustomModal from "@radix-ui/react-alert-dialog";
 
 interface IModalProps {
   label?: string;
-  row?: TableRow;
   identifier: string;
   onClick?: () => void;
   children: React.ReactNode;

@@ -8,11 +8,7 @@ import Image from "next/image";
 export default function Header() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { pageTitles } = useAppSelector((state) => state.ui);
-
-  const path = router.pathname
-    .split("/")
-    [router.pathname.split("/").length - 1].replace(/-/g, " ");
+  const auth = useAppSelector((state) => state.auth);
 
   return (
     <nav className="h-24 bg-neutral-800">
@@ -28,7 +24,9 @@ export default function Header() {
             src="/user.jpeg"
             className="w-10 h-10 rounded-full object-cover object-center"
           />
-          <div className="text-zinc-100">Header People</div>
+          <div className="text-zinc-100">
+            {auth.user?.username ?? auth.user?.email ?? "Anonymous"}
+          </div>
         </div>
       </div>
     </nav>

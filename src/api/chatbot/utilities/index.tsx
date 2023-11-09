@@ -17,4 +17,4 @@ export const chatUtilsApi = rootApi.injectEndpoints({
   }),
 });
 
-export const {} = chatUtilsApi;
+export const { useGetFolderPathQuery, useProcessDocsMutation } = chatUtilsApi;
