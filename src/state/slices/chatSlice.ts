@@ -4,6 +4,7 @@ type ChatState = {
   chat:
     | {
         text: string;
+        error?: boolean;
         type: "user" | "bot";
       }[]
     | null;
@@ -21,6 +22,7 @@ const chatSlice = createSlice({
       state,
       action: PayloadAction<{
         text: string;
+        error?: boolean;
         type: "user" | "bot";
       }>
     ) => {
@@ -28,12 +30,14 @@ const chatSlice = createSlice({
         state.chat.push({
           text: action.payload.text,
           type: action.payload.type,
+          error: action.payload.error || false,
         });
       } else {
         state.chat = [
           {
             text: action.payload.text,
             type: action.payload.type,
+            error: action.payload.error || false,
           },
         ];
       }

@@ -8,10 +8,15 @@ import { HiArrowRight, HiOutlinePlusCircle, HiXCircle } from "react-icons/hi";
 
 interface ChatContentProps {
   text: string;
+  error?: boolean;
   type?: "user" | "bot";
 }
 
-const ChatContent = ({ text, type = "bot" }: ChatContentProps) => {
+const ChatContent = ({
+  text,
+  type = "bot",
+  error = false,
+}: ChatContentProps) => {
   const dispatch = useAppDispatch();
   const [open, setOpen] = useState(false);
   const { showSidebar } = useAppSelector((state) => state.ui);
@@ -82,9 +87,9 @@ const ChatContent = ({ text, type = "bot" }: ChatContentProps) => {
         <div
           className={`w-full flex flex-col gap-y-2 ${
             type === "user" && `-mt-1`
-          }`}
+          } ${error && `text-red-500`}`}
         >
-          {type === "bot" ? animatedText : text}
+          <span>{type === "bot" ? animatedText : text}</span>
 
           {type === "bot" && (
             <button

@@ -23,12 +23,13 @@ import {
 } from "react-icons/hi";
 
 import { addChatContent } from "@/state/slices/chatSlice";
+import showAlert from "@/comps/ui/Alert/Alert";
 
 interface FilesObject {
   [key: string]: File;
 }
 
-const mapStatusToMessage = {
+const statusEnum = {
   idle: null,
   error: {
     icon: <HiXCircle className="w-5 h-5 text-[#F87171]" />,
@@ -72,6 +73,7 @@ const ChatInput = () => {
   const textbox = useRef<HTMLTextAreaElement | null>(null);
   const [files, setFiles] = useState<FileList | File[] | []>([]);
   const [uploadFilesMutation, result] = useUploadFilesMutation();
+  const [fetchingchatResponse, setFetchingchatResponse] = useState(false);
   const [processDocsMutation, processDocsResult] = useProcessDocsMutation();
   const [chat, setChat] = useLazyChatQuery();
 
@@ -159,47 +161,69 @@ const ChatInput = () => {
     if (files.length > 0) uploadFiles((files as FileList) || []);
   }, [files, uploadFiles]);
 
-  const processDocs = async () => {
-    try {
-      const processDocsResponse = await processDocsMutation({
-        id: topicId,
-      }).unwrap();
+  const tryAgain = async (action: string) => {
+    if (action === "upload_failed") {
+      showAlert("File re-upload feature pending", "info");
+    } else if (action === "process_failed") {
+      try {
+        const processDocsResponse = await processDocsMutation({
+          id: topicId,
+        }).unwrap();
 
-      setStatus("processing");
-      console.log(processDocsResponse);
-    } catch (error) {
-      console.log(error);
-      setStatus("process_failed");
+        setStatus("processing");
+        console.log(processDocsResponse);
+      } catch (error) {
+        console.log(error);
+        setStatus("process_failed");
+      }
+    } else {
+      showAlert("Invalid action", "error");
     }
   };
 
-  const setTextInput = async () => {
+  const initiateChat = async () => {
     if (textbox.current?.value) {
+      const message = textbox.current.value;
+
+      textbox.current.value = "";
+
       dispatch(
         addChatContent({
-          text: textbox.current.value,
+          text: message,
           type: "user",
         })
       );
-      textbox.current.value = "";
 
       try {
+        setFetchingchatResponse(true);
+
         const res = await chat({
-          message: textbox.current.value,
+          message: message,
           topicId,
         }).unwrap();
 
         if (res) {
-          console.log(res);
+          window.scrollTo(0, document.body.scrollHeight);
+
           dispatch(
             addChatContent({
               text: res?.response_message,
               type: "bot",
             })
           );
+
+          setFetchingchatResponse(false);
         }
       } catch (error) {
         console.log(error);
+        dispatch(
+          addChatContent({
+            text: "Something went wrong. Try again",
+            type: "bot",
+          })
+        );
+
+        setFetchingchatResponse(false);
       }
     }
   };
@@ -215,29 +239,16 @@ const ChatInput = () => {
             >
               <div className="flex gap-x-2">
                 <span className="cursor-pointer text-neutral-200">
-                  {
-                    mapStatusToMessage[
-                      status as keyof typeof mapStatusToMessage
-                    ]?.icon
-                  }
+                  {statusEnum[status]?.icon}
                 </span>
 
                 <div className="flex flex-col">
                   <span className="text-base">{file.name}</span>
-                  <span className={`capitalize text-base text-[#9CA3AF]`}>
-                    {/* {status === "error" ? (
-                      <span className="text-[#F87171]">
-                        Failed to upload file.{" "}
-                        <span className="text-white underline">Try again</span>
-                      </span>
-                    ) : (
-                      status
-                    )} */}
-                    {/* {
-                      mapStatusToMessage[status as keyof typeof mapStatusToMessage]
-                        ?.message
-                    } */}
-                    <button onClick={processDocs}>Try Again</button>
+                  <span
+                    className={`inline-block capitalize text-base text-[#9CA3AF]`}
+                    onClick={() => tryAgain(statusEnum[status]?.message ?? "")}
+                  >
+                    {statusEnum[status]?.message}
                   </span>
                 </div>
               </div>
@@ -271,8 +282,9 @@ const ChatInput = () => {
             rows={1}
             ref={textbox}
             onChange={adjustHeight}
+            disabled={fetchingchatResponse}
             placeholder="Upload some documents to get started"
-            className={`p-4 focus:outline-none bg-transparent flex-grow outline-none resize-none w-[95%] overflow-hidden`}
+            className={`disabled:pointer-events-none disabled:opacity-40 p-4 focus:outline-none bg-transparent flex-grow outline-none resize-none w-[95%] overflow-hidden`}
           />
 
           <label htmlFor="upload-files" className="cursor-pointer">
@@ -289,7 +301,7 @@ const ChatInput = () => {
           {files.length > 0 && (
             <button
               className="cursor-pointer"
-              onClick={() => dispatch(setTextInput)}
+              onClick={() => dispatch(initiateChat)}
             >
               <PaperAirplane className="bg-daisy-bush-300 w-10 h-10 rounded-lg p-2" />
             </button>
