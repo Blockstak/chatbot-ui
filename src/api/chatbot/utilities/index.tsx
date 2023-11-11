@@ -7,7 +7,6 @@ export const chatUtilsApi = rootApi.injectEndpoints({
       query: (payload) => ({
         url: `/chatbot/process-docs/${payload.id}/`,
         method: "POST",
-        body: payload,
       }),
     }),
 

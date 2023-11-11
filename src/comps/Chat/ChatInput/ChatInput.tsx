@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import Suggestions from "../Suggestions";
 import { AiOutlineCloudUpload } from "react-icons/ai";
 import { useProcessDocsMutation } from "@/api/chatbot/utilities";
+import { useAppDispatch, useAppSelector } from "@/hooks/useStoreTypes";
 
 import {
   useRef,
@@ -11,6 +12,7 @@ import {
   useLayoutEffect,
 } from "react";
 
+import { useLazyChatQuery } from "@api/chatbot/chat";
 import { PaperAirplane, PaperClip } from "@/assets/icons";
 import { useUploadFilesMutation } from "@api/chatbot/files";
 
@@ -20,26 +22,68 @@ import {
   HiOutlineInformationCircle,
 } from "react-icons/hi";
 
+import { addChatContent } from "@/state/slices/chatSlice";
+
 interface FilesObject {
   [key: string]: File;
 }
 
-const mapStatusToIcon = {
+const mapStatusToMessage = {
   idle: null,
-  error: <HiXCircle className="w-5 h-5 text-[#F87171]" />,
-  uploaded: <HiCheckCircle className="w-5 h-5 text-[#4ADE80]" />,
-  uploading: <AiOutlineCloudUpload className="w-5 h-5 text-[#F3F4F6]" />,
+  error: {
+    icon: <HiXCircle className="w-5 h-5 text-[#F87171]" />,
+    message: "Failed to upload file. Try again",
+  },
+
+  uploaded: {
+    icon: <HiCheckCircle className="w-5 h-5 text-[#34D399]" />,
+    message: "Uploaded",
+  },
+
+  uploading: {
+    icon: <AiOutlineCloudUpload className="w-5 h-5 text-[#F3F4F6]" />,
+    message: "Uploading",
+  },
+
+  upload_failed: {
+    icon: <HiXCircle className="w-5 h-5 text-[#F87171]" />,
+    message: "Failed to upload file. Try again",
+  },
+
+  processing: {
+    icon: <AiOutlineCloudUpload className="w-5 h-5 text-[#F3F4F6]" />,
+    message: "Processing",
+  },
+
+  processed: {
+    icon: <HiCheckCircle className="w-5 h-5 text-[#34D399]" />,
+    message: "Processed",
+  },
+
+  process_failed: {
+    icon: <HiXCircle className="w-5 h-5 text-[#F87171]" />,
+    message: "Failed to process file. Try again",
+  },
 };
 
 const ChatInput = () => {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const textbox = useRef<HTMLTextAreaElement | null>(null);
   const [files, setFiles] = useState<FileList | File[] | []>([]);
   const [uploadFilesMutation, result] = useUploadFilesMutation();
   const [processDocsMutation, processDocsResult] = useProcessDocsMutation();
+  const [chat, setChat] = useLazyChatQuery();
 
   const [status, setStatus] = useState<
-    "idle" | "uploading" | "uploaded" | "error" | "processing"
+    | "idle"
+    | "error"
+    | "uploaded"
+    | "uploading"
+    | "processed"
+    | "processing"
+    | "upload_failed"
+    | "process_failed"
   >("idle");
 
   const topicId = router.query.id as unknown as number;
@@ -87,14 +131,19 @@ const ChatInput = () => {
           const res = await uploadFilesMutation(formData).unwrap();
           setStatus("uploaded");
 
-          // if (res) {
-          //   const processDocsResponse = await processDocsMutation({
-          //     id: res.id,
-          //   }).unwrap();
+          if (res) {
+            try {
+              const processDocsResponse = await processDocsMutation({
+                id: topicId,
+              }).unwrap();
 
-          //   setStatus("processing");
-          //   console.log(processDocsResponse);
-          // }
+              setStatus("processing");
+              console.log(processDocsResponse);
+            } catch (error) {
+              console.log(error);
+              setStatus("process_failed");
+            }
+          }
         } catch (error) {
           setStatus("error");
           console.log(error);
@@ -110,6 +159,51 @@ const ChatInput = () => {
     if (files.length > 0) uploadFiles((files as FileList) || []);
   }, [files, uploadFiles]);
 
+  const processDocs = async () => {
+    try {
+      const processDocsResponse = await processDocsMutation({
+        id: topicId,
+      }).unwrap();
+
+      setStatus("processing");
+      console.log(processDocsResponse);
+    } catch (error) {
+      console.log(error);
+      setStatus("process_failed");
+    }
+  };
+
+  const setTextInput = async () => {
+    if (textbox.current?.value) {
+      dispatch(
+        addChatContent({
+          text: textbox.current.value,
+          type: "user",
+        })
+      );
+      textbox.current.value = "";
+
+      try {
+        const res = await chat({
+          message: textbox.current.value,
+          topicId,
+        }).unwrap();
+
+        if (res) {
+          console.log(res);
+          dispatch(
+            addChatContent({
+              text: res?.response_message,
+              type: "bot",
+            })
+          );
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  };
+
   const renderFiles = () => {
     if (files) {
       return (
@@ -121,20 +215,29 @@ const ChatInput = () => {
             >
               <div className="flex gap-x-2">
                 <span className="cursor-pointer text-neutral-200">
-                  {mapStatusToIcon[status as keyof typeof mapStatusToIcon]}
+                  {
+                    mapStatusToMessage[
+                      status as keyof typeof mapStatusToMessage
+                    ]?.icon
+                  }
                 </span>
 
                 <div className="flex flex-col">
                   <span className="text-base">{file.name}</span>
                   <span className={`capitalize text-base text-[#9CA3AF]`}>
-                    {status === "error" ? (
+                    {/* {status === "error" ? (
                       <span className="text-[#F87171]">
                         Failed to upload file.{" "}
                         <span className="text-white underline">Try again</span>
                       </span>
                     ) : (
                       status
-                    )}
+                    )} */}
+                    {/* {
+                      mapStatusToMessage[status as keyof typeof mapStatusToMessage]
+                        ?.message
+                    } */}
+                    <button onClick={processDocs}>Try Again</button>
                   </span>
                 </div>
               </div>
@@ -184,9 +287,12 @@ const ChatInput = () => {
           </label>
 
           {files.length > 0 && (
-            <span>
+            <button
+              className="cursor-pointer"
+              onClick={() => dispatch(setTextInput)}
+            >
               <PaperAirplane className="bg-daisy-bush-300 w-10 h-10 rounded-lg p-2" />
-            </span>
+            </button>
           )}
 
           <input

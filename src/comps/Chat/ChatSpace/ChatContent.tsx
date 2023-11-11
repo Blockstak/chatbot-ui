@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Robot from "@/assets/icons/Robot";
 import { setShowSidebar } from "@/state/slices/uiSlice";
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
@@ -7,13 +7,36 @@ import { useAppDispatch, useAppSelector } from "@/hooks/useStoreTypes";
 import { HiArrowRight, HiOutlinePlusCircle, HiXCircle } from "react-icons/hi";
 
 interface ChatContentProps {
+  text: string;
   type?: "user" | "bot";
 }
 
-const ChatContent = ({ type = "bot" }: ChatContentProps) => {
+const ChatContent = ({ text, type = "bot" }: ChatContentProps) => {
   const dispatch = useAppDispatch();
   const [open, setOpen] = useState(false);
   const { showSidebar } = useAppSelector((state) => state.ui);
+
+  const [wordIndex, setWordIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(true);
+  const [animatedText, setAnimatedText] = useState("");
+
+  useEffect(() => {
+    if (type === "bot" && text && isAnimating) {
+      const words = text.split(" ");
+
+      const interval = setInterval(() => {
+        setAnimatedText((prev) => prev + " " + words[wordIndex]);
+        setWordIndex((prev) => prev + 1);
+
+        if (wordIndex === words.length - 1) {
+          setIsAnimating(false); // Stop the animation
+          clearInterval(interval);
+        }
+      }, 100);
+
+      return () => clearInterval(interval);
+    }
+  }, [text, type, wordIndex, isAnimating]);
 
   return (
     <div
@@ -37,7 +60,7 @@ const ChatContent = ({ type = "bot" }: ChatContentProps) => {
         </div>
       )}
 
-      <div className={`flex gap-x-4`}>
+      <div className={`flex items-center gap-x-4`}>
         <div
           className={`w-10 h-10 ${
             type === "user" && `bg-neutral-100 rounded-full`
@@ -61,21 +84,11 @@ const ChatContent = ({ type = "bot" }: ChatContentProps) => {
             type === "user" && `-mt-1`
           }`}
         >
-          <p className="w-full font-medium text-lg">
-            Lorem ipsum dolor sit amet consectetur. Fermentum risus sit sagittis
-            amet mi pharetra nisl eget elit. Quam sodales nec fames amet
-            pellentesque sed eget. Lobortis non tempus fringilla tincidunt.
-            Mauris rhoncus volutpat egestas blandit. Ullamcorper mattis congue
-            tempor amet faucibus odio. Ante eu cursus mauris lorem adipiscing
-            suspendisse ut adipiscing. Aliquet sed nulla pellentesque mattis.
-          </p>
+          {type === "bot" ? animatedText : text}
 
           {type === "bot" && (
             <button
-              onClick={() => {
-                dispatch(setShowSidebar(!showSidebar));
-                // setOpen(!open);
-              }}
+              onClick={() => dispatch(setShowSidebar(!showSidebar))}
               className="ml-auto w-min border border-daisy-bush-200 text-daisy-bush-200 rounded text-sm whitespace-nowrap px-4 py-3 font-medium"
             >
               <span>View Sources</span>

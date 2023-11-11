@@ -1,1 +1,3 @@
-export type ChatResponse = any;
+export type ChatResponse = {
+  response_message: string;
+};

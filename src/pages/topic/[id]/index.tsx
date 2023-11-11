@@ -27,4 +27,5 @@ function TopicId() {
   );
 }
 
-export default withAuth(TopicId);
+// export default withAuth(TopicId);
+export default TopicId;
