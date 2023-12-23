@@ -141,6 +141,10 @@ const ChatInput = () => {
 
               setStatus("processing");
               console.log(processDocsResponse);
+
+              if (processDocsResponse) {
+                setStatus("processed");
+              }
             } catch (error) {
               console.log(error);
               setStatus("process_failed");

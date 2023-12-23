@@ -12,7 +12,7 @@ import {
 import { HiOutlineChatBubbleOvalLeftEllipsis } from "react-icons/hi2";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { logout } from "@/state/slices/authSlice";
 import { RiLogoutCircleRLine } from "react-icons/ri";
 import { usePostTopicsMutation } from "@/api/chatbot/topics";
@@ -46,6 +46,10 @@ export default function Sidebar() {
   const [inputVisible, setInputVisible] = useState(false);
   const { topics } = useAppSelector((state) => state.topic);
   const [topicList, setTopicList] = useState(topics?.results || []);
+
+  useEffect(() => {
+    setTopicList(topics?.results || []);
+  }, [topics]);
 
   const handleLogout = () => {
     dispatch(logout());
