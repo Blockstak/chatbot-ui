@@ -1,14 +1,15 @@
 import Link from "next/link";
-import { useRouter } from "next/router";
-import { RiDoorOpenLine } from "react-icons/ri";
-
-import { useAppSelector, useAppDispatch } from "@/hooks/useStoreTypes";
 import Image from "next/image";
+import { useRouter } from "next/router";
+import { useProfileQuery } from "@/api/auth";
+import { RiDoorOpenLine } from "react-icons/ri";
 
 export default function Header() {
   const router = useRouter();
-  const dispatch = useAppDispatch();
-  const auth = useAppSelector((state) => state.auth);
+  const { data, isLoading, isError } = useProfileQuery();
+
+  if (isLoading) return <div>Loading...</div>;
+  if (isError) return <div>Something went wrong...</div>;
 
   return (
     <nav className="h-24 bg-neutral-800">
@@ -24,8 +25,8 @@ export default function Header() {
             src="/user.jpeg"
             className="w-10 h-10 rounded-full object-cover object-center"
           />
-          <div className="text-zinc-100">
-            {auth.user?.username ?? auth.user?.email ?? "Anonymous"}
+          <div className="text-zinc-100 capitalize">
+            {data?.user.username ?? "Anonymous"}
           </div>
         </div>
       </div>
