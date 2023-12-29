@@ -26,7 +26,7 @@ export default function Header() {
             className="w-10 h-10 rounded-full object-cover object-center"
           />
           <div className="text-zinc-100 capitalize">
-            {data?.user.username ?? "Anonymous"}
+            {data?.user?.username ?? "Anonymous"}
           </div>
         </div>
       </div>

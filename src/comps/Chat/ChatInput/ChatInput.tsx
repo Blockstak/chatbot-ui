@@ -14,7 +14,11 @@ import {
 
 import { useLazyChatQuery } from "@api/chatbot/chat";
 import { PaperAirplane, PaperClip } from "@/assets/icons";
-import { useUploadFilesMutation } from "@api/chatbot/files";
+import {
+  useGetFilesQuery,
+  useLazyGetFilesQuery,
+  useUploadFilesMutation,
+} from "@api/chatbot/files";
 
 import {
   HiXCircle,
@@ -24,6 +28,7 @@ import {
 
 import { addChatContent } from "@/state/slices/chatSlice";
 import showAlert from "@/comps/ui/Alert/Alert";
+import { RiLoader4Fill } from "react-icons/ri";
 
 interface FilesObject {
   [key: string]: File;
@@ -38,12 +43,12 @@ const statusEnum = {
 
   uploaded: {
     icon: <HiCheckCircle className="w-5 h-5 text-[#34D399]" />,
-    message: "Uploaded",
+    message: "Uploaded to server",
   },
 
   uploading: {
     icon: <AiOutlineCloudUpload className="w-5 h-5 text-[#F3F4F6]" />,
-    message: "Uploading",
+    message: "Uploading to server",
   },
 
   upload_failed: {
@@ -70,12 +75,20 @@ const statusEnum = {
 const ChatInput = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const [skip, setSkip] = useState(false);
+  const [chat, chatResult] = useLazyChatQuery();
+  const [getFiles, result] = useLazyGetFilesQuery();
+  const { data, refetch } = useGetFilesQuery(null, {
+    skip,
+  });
+
+  const topicId = router.query.id as unknown as number;
   const textbox = useRef<HTMLTextAreaElement | null>(null);
   const [files, setFiles] = useState<FileList | File[] | []>([]);
-  const [uploadFilesMutation, result] = useUploadFilesMutation();
-  const [fetchingchatResponse, setFetchingchatResponse] = useState(false);
+  const [fetchingChatResponse, setFetchingChatResponse] = useState(false);
+  const [placeHolder, setPlaceHolder] = useState("Upload some documents");
+  const [uploadFilesMutation, uploadFilesResult] = useUploadFilesMutation();
   const [processDocsMutation, processDocsResult] = useProcessDocsMutation();
-  const [chat, setChat] = useLazyChatQuery();
 
   const [status, setStatus] = useState<
     | "idle"
@@ -88,8 +101,6 @@ const ChatInput = () => {
     | "process_failed"
   >("idle");
 
-  const topicId = router.query.id as unknown as number;
-
   const adjustHeight = () => {
     if (textbox?.current) {
       textbox.current.style.height = "inherit";
@@ -97,37 +108,15 @@ const ChatInput = () => {
     }
   };
 
-  // const packFiles = useCallback(
-  //   (myFiles: FileList | []) => {
-  //     const fileInput = myFiles?.[0];
-
-  //     const formData = new FormData();
-  //     const filesObject: FilesObject = {};
-
-  //     [...myFiles].forEach((file, i) => {
-  //       filesObject[`file-${i}`] = file;
-  //     });
-
-  //     formData.append("file", fileInput);
-  //     formData.append("files", JSON.stringify(filesObject));
-  //     formData.append("topic", topicId as unknown as string);
-
-  //     return formData;
-  //   },
-  //   [topicId]
-  // );
-
   const uploadFiles = useCallback(
     async (files: FileList | []) => {
+      setSkip(true);
       setStatus("uploading");
-      // const formData = packFiles(files || []);
 
       [...files].forEach(async (file, i) => {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("topic", topicId as unknown as string);
-
-        console.log(formData.getAll("file"));
 
         try {
           const res = await uploadFilesMutation(formData).unwrap();
@@ -135,24 +124,38 @@ const ChatInput = () => {
 
           if (res) {
             try {
+              setStatus("processing");
+              setPlaceHolder("Processing your documents");
               const processDocsResponse = await processDocsMutation({
                 id: topicId,
               }).unwrap();
 
-              setStatus("processing");
-              console.log(processDocsResponse);
-
-              if (processDocsResponse) {
+              if (processDocsResponse.msg === "Documents have processed!") {
                 setStatus("processed");
+                setPlaceHolder("Ask a question");
+
+                // setFiles((prevFiles) => {
+                //   return Array.from(prevFiles).filter(
+                //     (f) => f.name !== file.name
+                //   );
+                // });
+
+                setSkip(false);
+                showAlert(
+                  "Files processed successfully. Start chatting!",
+                  "success"
+                );
               }
             } catch (error) {
               console.log(error);
               setStatus("process_failed");
+              showAlert("File processing failed. Try again", "error");
             }
           }
         } catch (error) {
-          setStatus("error");
           console.log(error);
+          setStatus("error");
+          showAlert("File upload failed. Try again", "error");
         }
       });
     },
@@ -188,7 +191,6 @@ const ChatInput = () => {
   const initiateChat = async () => {
     if (textbox.current?.value) {
       const message = textbox.current.value;
-
       textbox.current.value = "";
 
       dispatch(
@@ -199,7 +201,7 @@ const ChatInput = () => {
       );
 
       try {
-        setFetchingchatResponse(true);
+        setFetchingChatResponse(true);
 
         const res = await chat({
           message: message,
@@ -216,7 +218,7 @@ const ChatInput = () => {
             })
           );
 
-          setFetchingchatResponse(false);
+          setFetchingChatResponse(false);
         }
       } catch (error) {
         console.log(error);
@@ -227,7 +229,7 @@ const ChatInput = () => {
           })
         );
 
-        setFetchingchatResponse(false);
+        setFetchingChatResponse(false);
       }
     }
   };
@@ -249,8 +251,8 @@ const ChatInput = () => {
                 <div className="flex flex-col">
                   <span className="text-base">{file.name}</span>
                   <span
-                    className={`inline-block capitalize text-base text-[#9CA3AF]`}
                     onClick={() => tryAgain(statusEnum[status]?.message ?? "")}
+                    className={`inline-block capitalize text-base text-[#9CA3AF]`}
                   >
                     {statusEnum[status]?.message}
                   </span>
@@ -272,6 +274,41 @@ const ChatInput = () => {
     }
   };
 
+  const displayFiles = () => {
+    if (data?.results) {
+      return (
+        <div className="w-full flex flex-wrap justify-between gap-2 my-1">
+          {data?.results
+            .filter((file) => file.topic === Number(topicId))
+            .map((file) => (
+              <div
+                key={file.file}
+                className="flex -mx-1 basis-full md:basis-1/2 items-center justify-between p-4 border rounded-lg font-medium"
+              >
+                <div className="flex gap-x-2">
+                  <span className="cursor-pointer text-neutral-200">
+                    {statusEnum["processed"]?.icon}
+                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-base">
+                      {file.file
+                        .split("/")
+                        .toReversed()[0]
+                        .split("_")
+                        .join(" ")}
+                    </span>
+                    <span className={`inline-block capitalize text-[#9CA3AF]`}>
+                      {statusEnum["processed"]?.message}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+        </div>
+      );
+    }
+  };
+
   return (
     <div className={`max-w-6xl mx-auto`}>
       {/* <Suggestions /> */}
@@ -286,29 +323,41 @@ const ChatInput = () => {
             rows={1}
             ref={textbox}
             onChange={adjustHeight}
-            disabled={fetchingchatResponse}
-            placeholder="Upload some documents to get started"
+            placeholder={placeHolder}
+            disabled={fetchingChatResponse}
             className={`disabled:pointer-events-none disabled:opacity-40 p-4 focus:outline-none bg-transparent flex-grow outline-none resize-none w-[95%] overflow-hidden`}
           />
 
-          <label htmlFor="upload-files" className="cursor-pointer">
-            <PaperClip
-              color={files.length > 0 ? "#a4a4fd" : "#ffffff"}
-              className={`${
-                files.length > 0
-                  ? `border-2 border-daisy-bush-300`
-                  : `bg-daisy-bush-300`
-              } w-10 h-10 rounded-lg p-2`}
+          {chatResult.isLoading ? (
+            <RiLoader4Fill
+              className="animate-spin text-4xl text-neutral-200 font-bold mb-2"
+              data-testid="loading-svg"
             />
-          </label>
-
-          {files.length > 0 && (
-            <button
-              className="cursor-pointer"
-              onClick={() => dispatch(initiateChat)}
-            >
-              <PaperAirplane className="bg-daisy-bush-300 w-10 h-10 rounded-lg p-2" />
-            </button>
+          ) : (
+            <>
+              <label htmlFor="upload-files" className="cursor-pointer">
+                <PaperClip
+                  color={files.length > 0 ? "#a4a4fd" : "#ffffff"}
+                  className={`${
+                    files.length > 0
+                      ? `border-2 border-daisy-bush-300`
+                      : `bg-daisy-bush-300`
+                  } w-10 h-10 rounded-lg p-2`}
+                />
+              </label>
+              {(files.length > 0 ||
+                (data?.results &&
+                  data?.results?.find(
+                    (file) => file.topic === Number(topicId)
+                  ) !== undefined)) && (
+                <button
+                  className="cursor-pointer"
+                  onClick={() => dispatch(initiateChat)}
+                >
+                  <PaperAirplane className="bg-daisy-bush-300 w-10 h-10 rounded-lg p-2" />
+                </button>
+              )}
+            </>
           )}
 
           <input
@@ -322,6 +371,7 @@ const ChatInput = () => {
         </div>
 
         {renderFiles()}
+        {displayFiles()}
       </div>
 
       {files.length === 0 && (

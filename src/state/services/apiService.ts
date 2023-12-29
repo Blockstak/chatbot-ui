@@ -15,7 +15,7 @@ export const rootApi = createApi({
     },
   }),
 
-  tagTypes: ["Topics"],
+  tagTypes: ["Topics", "Files"],
 
   endpoints: () => ({}),
 });

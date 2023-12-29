@@ -53,6 +53,11 @@ export default function Login() {
         email: data.email,
         password: data.password,
         username: data.username,
+        profile: {
+          credit: 0,
+          contact: "",
+          address: "",
+        },
       }).unwrap();
 
       if (registerRes.email && registerRes.username) {
@@ -88,7 +93,8 @@ export default function Login() {
     } catch (err: any) {
       const errors = Object.keys(err?.data ?? {});
       showAlert(
-        err?.data[errors[0]] ?? "Something went wrong. Please try again.",
+        `${errors[0]} : ${err?.data[errors[0]]}` ??
+          "Something went wrong. Please try again.",
         "error"
       );
     }

@@ -5,16 +5,22 @@ export const filesApi = rootApi.injectEndpoints({
   endpoints: (builder) => ({
     uploadFiles: builder.mutation<UploadFileResponse, UploadFileFormData>({
       query: (payload) => ({
-        url: `/chatbot/uploaded_files/`,
+        url: `/chatbot/files/`,
         method: "POST",
         body: payload,
       }),
+      //invalidatesTags: ["Files"],
     }),
 
-    getFiles: builder.query<UploadFileResponse, void>({
-      query: () => ({ url: `/chatbot/uploaded_files/` }),
+    getFiles: builder.query<UploadFileResponse, null>({
+      query: () => ({ url: `/chatbot/files/` }),
+      //providesTags: ["Files"],
     }),
   }),
 });
 
-export const { useGetFilesQuery, useUploadFilesMutation } = filesApi;
+export const {
+  useGetFilesQuery,
+  useLazyGetFilesQuery,
+  useUploadFilesMutation,
+} = filesApi;
