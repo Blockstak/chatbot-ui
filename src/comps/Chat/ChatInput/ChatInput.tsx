@@ -1,5 +1,7 @@
+import { store } from "@/state/store";
 import { useRouter } from "next/router";
 import Suggestions from "../Suggestions";
+import { chatApi } from "@api/chatbot/chat";
 import { AiOutlineCloudUpload } from "react-icons/ai";
 import { useProcessDocsMutation } from "@/api/chatbot/utilities";
 import { useAppDispatch, useAppSelector } from "@/hooks/useStoreTypes";
@@ -15,9 +17,8 @@ import {
 import { useLazyChatQuery } from "@api/chatbot/chat";
 import { PaperAirplane, PaperClip } from "@/assets/icons";
 import {
-  useGetFilesQuery,
-  useLazyGetFilesQuery,
   useUploadFilesMutation,
+  useGetFilesByTopicIdQuery,
 } from "@api/chatbot/files";
 
 import {
@@ -77,12 +78,15 @@ const ChatInput = () => {
   const dispatch = useAppDispatch();
   const [skip, setSkip] = useState(false);
   const [chat, chatResult] = useLazyChatQuery();
-  const [getFiles, result] = useLazyGetFilesQuery();
-  const { data, refetch } = useGetFilesQuery(null, {
-    skip,
-  });
-
+  const [uploaded, setUploaded] = useState(false);
   const topicId = router.query.id as unknown as number;
+  const { data, refetch } = useGetFilesByTopicIdQuery(
+    topicId as unknown as string,
+    {
+      skip,
+    }
+  );
+
   const textbox = useRef<HTMLTextAreaElement | null>(null);
   const [files, setFiles] = useState<FileList | File[] | []>([]);
   const [fetchingChatResponse, setFetchingChatResponse] = useState(false);
@@ -120,11 +124,14 @@ const ChatInput = () => {
 
         try {
           const res = await uploadFilesMutation(formData).unwrap();
-          setStatus("uploaded");
 
           if (res) {
+            setUploaded(true);
+            setStatus("uploaded");
+
             try {
               setStatus("processing");
+              setFetchingChatResponse(true);
               setPlaceHolder("Processing your documents");
               const processDocsResponse = await processDocsMutation({
                 id: topicId,
@@ -132,13 +139,8 @@ const ChatInput = () => {
 
               if (processDocsResponse.msg === "Documents have processed!") {
                 setStatus("processed");
+                setFetchingChatResponse(false);
                 setPlaceHolder("Ask a question");
-
-                // setFiles((prevFiles) => {
-                //   return Array.from(prevFiles).filter(
-                //     (f) => f.name !== file.name
-                //   );
-                // });
 
                 setSkip(false);
                 showAlert(
@@ -165,8 +167,18 @@ const ChatInput = () => {
   useLayoutEffect(adjustHeight, []);
 
   useEffect(() => {
-    if (files.length > 0) uploadFiles((files as FileList) || []);
-  }, [files, uploadFiles]);
+    if (files.length > 0 && uploaded === false) {
+      uploadFiles((files as FileList) || []);
+    }
+  }, [files, uploadFiles, uploaded]);
+
+  useEffect(() => {
+    setPlaceHolder(
+      data?.results && data?.results?.length > 0
+        ? "Ask a question"
+        : "Upload some documents"
+    );
+  }, [data?.results]);
 
   const tryAgain = async (action: string) => {
     if (action === "upload_failed") {
@@ -202,15 +214,12 @@ const ChatInput = () => {
 
       try {
         setFetchingChatResponse(true);
-
         const res = await chat({
           message: message,
           topicId,
         }).unwrap();
 
         if (res) {
-          window.scrollTo(0, document.body.scrollHeight);
-
           dispatch(
             addChatContent({
               text: res?.response_message,
@@ -221,7 +230,6 @@ const ChatInput = () => {
           setFetchingChatResponse(false);
         }
       } catch (error) {
-        console.log(error);
         dispatch(
           addChatContent({
             text: "Something went wrong. Try again",
@@ -278,32 +286,26 @@ const ChatInput = () => {
     if (data?.results) {
       return (
         <div className="w-full flex flex-wrap justify-between gap-2 my-1">
-          {data?.results
-            .filter((file) => file.topic === Number(topicId))
-            .map((file) => (
-              <div
-                key={file.file}
-                className="flex -mx-1 basis-full md:basis-1/2 items-center justify-between p-4 border rounded-lg font-medium"
-              >
-                <div className="flex gap-x-2">
-                  <span className="cursor-pointer text-neutral-200">
-                    {statusEnum["processed"]?.icon}
+          {data?.results.map((file) => (
+            <div
+              key={file.file}
+              className="flex -mx-1 basis-full md:basis-1/2 items-center justify-between p-4 border rounded-lg font-medium"
+            >
+              <div className="flex gap-x-2">
+                <span className="cursor-pointer text-neutral-200">
+                  {statusEnum["processed"]?.icon}
+                </span>
+                <div className="flex flex-col">
+                  <span className="text-base">
+                    {file.file.split("/").toReversed()[0].split("_").join(" ")}
                   </span>
-                  <div className="flex flex-col">
-                    <span className="text-base">
-                      {file.file
-                        .split("/")
-                        .toReversed()[0]
-                        .split("_")
-                        .join(" ")}
-                    </span>
-                    <span className={`inline-block capitalize text-[#9CA3AF]`}>
-                      {statusEnum["processed"]?.message}
-                    </span>
-                  </div>
+                  <span className={`inline-block capitalize text-[#9CA3AF]`}>
+                    {statusEnum["processed"]?.message}
+                  </span>
                 </div>
               </div>
-            ))}
+            </div>
+          ))}
         </div>
       );
     }
@@ -313,10 +315,10 @@ const ChatInput = () => {
     <div className={`max-w-6xl mx-auto`}>
       {/* <Suggestions /> */}
 
-      <div className={`${files && `border rounded-lg p-4`}`}>
+      <div className={files && `border rounded-lg p-4`}>
         <div
-          className={`flex items-center gap-x-2 ${
-            !files && `border`
+          className={`flex items-center gap-x-2 mt-1 ${
+            !files ? `border` : ``
           } rounded-lg `}
         >
           <textarea
@@ -325,10 +327,11 @@ const ChatInput = () => {
             onChange={adjustHeight}
             placeholder={placeHolder}
             disabled={fetchingChatResponse}
+            onKeyDown={(e) => e.key === "Enter" && dispatch(initiateChat)}
             className={`disabled:pointer-events-none disabled:opacity-40 p-4 focus:outline-none bg-transparent flex-grow outline-none resize-none w-[95%] overflow-hidden`}
           />
 
-          {chatResult.isLoading ? (
+          {fetchingChatResponse ? (
             <RiLoader4Fill
               className="animate-spin text-4xl text-neutral-200 font-bold mb-2"
               data-testid="loading-svg"
@@ -346,15 +349,17 @@ const ChatInput = () => {
                 />
               </label>
               {(files.length > 0 ||
-                (data?.results &&
-                  data?.results?.find(
-                    (file) => file.topic === Number(topicId)
-                  ) !== undefined)) && (
+                (data?.results && data?.results?.length > 0)) && (
                 <button
-                  className="cursor-pointer"
+                  disabled={fetchingChatResponse}
                   onClick={() => dispatch(initiateChat)}
+                  className="cursor-pointer disabled:pointer-events-none"
                 >
-                  <PaperAirplane className="bg-daisy-bush-300 w-10 h-10 rounded-lg p-2" />
+                  <PaperAirplane
+                    className={`${
+                      fetchingChatResponse ? `bg-gray-300` : `bg-daisy-bush-300`
+                    } w-10 h-10 rounded-lg p-2 `}
+                  />
                 </button>
               )}
             </>

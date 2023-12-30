@@ -14,6 +14,7 @@ export const chatApi = rootApi.injectEndpoints({
         url: `/chatbot/chat/?message=${message}&topic_id=${topicId}`,
         timeout: 30000,
       }),
+      providesTags: ["Chat"],
     }),
   }),
 });

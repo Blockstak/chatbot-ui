@@ -49,7 +49,7 @@ const ChatContent = ({
         type === "user" && "bg-neutral-900"
       } flex flex-col gap-y-4`}
     >
-      {type === "user" && (
+      {/* {type === "user" && (
         <div className="mb-4 flex flex-wrap gap-x-2 gap-y-4 w-full items-center">
           {[...Array(4)].map((_, index) => (
             <div
@@ -63,7 +63,7 @@ const ChatContent = ({
 
           <HiOutlinePlusCircle className="cursor-pointer text-neutral-200 w-8 h-8" />
         </div>
-      )}
+      )} */}
 
       <div className={`flex items-center gap-x-4`}>
         <div

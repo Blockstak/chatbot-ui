@@ -118,6 +118,7 @@ export default function Sidebar() {
         <div className="flex flex-col items-center relative mt-4 overflow-y-auto flex-1 p-4">
           <div
             onClick={() => handlePlusClick()}
+            onKeyDown={(e) => e.key === "Enter" && handleCheckClick()}
             className={`${
               !inputVisible &&
               `cursor-pointer text-neutral-200 hover:text-neutral-300`

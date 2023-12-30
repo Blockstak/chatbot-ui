@@ -2,9 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/* * {
+* {
   border: 1px solid #4e31aa !important;
-} */
+}
 
 html,
 body {

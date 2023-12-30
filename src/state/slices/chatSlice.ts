@@ -1,5 +1,13 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
+type Chat = {
+  topic: number;
+  error?: boolean;
+  botText: string;
+  userText: string;
+  type: "user" | "bot";
+};
+
 type ChatState = {
   chat:
     | {

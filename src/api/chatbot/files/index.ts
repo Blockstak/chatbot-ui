@@ -16,6 +16,11 @@ export const filesApi = rootApi.injectEndpoints({
       query: () => ({ url: `/chatbot/files/` }),
       //providesTags: ["Files"],
     }),
+
+    getFilesByTopicId: builder.query<UploadFileResponse, string>({
+      query: (topic_id) => ({ url: `/chatbot/files/?topic_id=${topic_id}` }),
+      //providesTags: ["Files"],
+    }),
   }),
 });
 
@@ -23,4 +28,5 @@ export const {
   useGetFilesQuery,
   useLazyGetFilesQuery,
   useUploadFilesMutation,
+  useGetFilesByTopicIdQuery,
 } = filesApi;
