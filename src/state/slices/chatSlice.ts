@@ -1,21 +1,16 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 type Chat = {
-  topic: number;
+  id: string;
+  topic?: number;
   error?: boolean;
   botText: string;
-  userText: string;
-  type: "user" | "bot";
+  userText?: string;
+  isStreaming?: boolean;
 };
 
 type ChatState = {
-  chat:
-    | {
-        text: string;
-        error?: boolean;
-        type: "user" | "bot";
-      }[]
-    | null;
+  chat: Chat[] | null;
 };
 
 const initialState: ChatState = {
@@ -26,28 +21,42 @@ const chatSlice = createSlice({
   name: "chat",
   initialState,
   reducers: {
-    addChatContent: (
-      state,
-      action: PayloadAction<{
-        text: string;
-        error?: boolean;
-        type: "user" | "bot";
-      }>
-    ) => {
+    addChatContent: (state, action: PayloadAction<Chat>) => {
       if (state.chat) {
         state.chat.push({
-          text: action.payload.text,
-          type: action.payload.type,
+          id: action.payload.id,
+          topic: action.payload.topic,
+          botText: action.payload.botText,
+          userText: action.payload.userText,
           error: action.payload.error || false,
+          isStreaming: action.payload.isStreaming,
         });
       } else {
         state.chat = [
           {
-            text: action.payload.text,
-            type: action.payload.type,
+            id: action.payload.id,
+            topic: action.payload.topic,
+            botText: action.payload.botText,
+            userText: action.payload.userText,
             error: action.payload.error || false,
+            isStreaming: action.payload.isStreaming,
           },
         ];
+      }
+    },
+
+    updateChatContent: (state, action: PayloadAction<Chat>) => {
+      if (state.chat) {
+        const index = state.chat.findIndex(
+          (item) => item.id === action.payload.id
+        );
+
+        state.chat[index] = {
+          ...state.chat[index],
+          botText: action.payload.botText,
+          error: action.payload.error || false,
+          isStreaming: action.payload.isStreaming,
+        };
       }
     },
   },
@@ -55,6 +64,6 @@ const chatSlice = createSlice({
   extraReducers: (builder) => {},
 });
 
-export const { addChatContent } = chatSlice.actions;
+export const { addChatContent, updateChatContent } = chatSlice.actions;
 
 export default chatSlice.reducer;

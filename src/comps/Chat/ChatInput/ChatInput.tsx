@@ -1,7 +1,6 @@
-import { store } from "@/state/store";
+import { v4 as uuidv4 } from "uuid";
 import { useRouter } from "next/router";
 import Suggestions from "../Suggestions";
-import { chatApi } from "@api/chatbot/chat";
 import { AiOutlineCloudUpload } from "react-icons/ai";
 import { useProcessDocsMutation } from "@/api/chatbot/utilities";
 import { useAppDispatch, useAppSelector } from "@/hooks/useStoreTypes";
@@ -27,9 +26,9 @@ import {
   HiOutlineInformationCircle,
 } from "react-icons/hi";
 
-import { addChatContent } from "@/state/slices/chatSlice";
 import showAlert from "@/comps/ui/Alert/Alert";
 import { RiLoader4Fill } from "react-icons/ri";
+import { addChatContent, updateChatContent } from "@/state/slices/chatSlice";
 
 interface FilesObject {
   [key: string]: File;
@@ -205,10 +204,15 @@ const ChatInput = () => {
       const message = textbox.current.value;
       textbox.current.value = "";
 
+      const chatId = uuidv4();
+
       dispatch(
         addChatContent({
-          text: message,
-          type: "user",
+          id: chatId,
+          userText: message,
+          isStreaming: true,
+          botText: "Typing...",
+          topic: Number(topicId),
         })
       );
 
@@ -221,9 +225,10 @@ const ChatInput = () => {
 
         if (res) {
           dispatch(
-            addChatContent({
-              text: res?.response_message,
-              type: "bot",
+            updateChatContent({
+              id: chatId,
+              isStreaming: true,
+              botText: res.response_message,
             })
           );
 
@@ -231,9 +236,9 @@ const ChatInput = () => {
         }
       } catch (error) {
         dispatch(
-          addChatContent({
-            text: "Something went wrong. Try again",
-            type: "bot",
+          updateChatContent({
+            id: chatId,
+            botText: "Failed to fetch response. Try again",
           })
         );
 

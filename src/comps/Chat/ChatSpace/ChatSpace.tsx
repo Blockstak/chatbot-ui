@@ -1,15 +1,28 @@
+import { useRouter } from "next/router";
 import ChatContent from "./ChatContent";
 import { useAppSelector, useAppDispatch } from "@/hooks/useStoreTypes";
 
 const ChatSpace = () => {
+  const router = useRouter();
+  const topicId = router.query.id as unknown as number;
   const { chat } = useAppSelector((state) => state.chat);
+
+  console.log(chat);
 
   return (
     <div className="flex flex-col gap-y-2">
       {chat &&
-        chat?.map((item, index) => (
-          <ChatContent key={index} text={item.text} type={item.type} />
-        ))}
+        chat
+          ?.filter((item) => item.topic === Number(topicId))
+          .map((item, index) => (
+            <ChatContent
+              key={index}
+              id={item.id}
+              botText={item.botText ?? ""}
+              userText={item.userText ?? ""}
+              isStreaming={item.isStreaming ?? false}
+            />
+          ))}
     </div>
   );
 };
