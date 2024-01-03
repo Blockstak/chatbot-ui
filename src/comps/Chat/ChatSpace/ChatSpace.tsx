@@ -7,8 +7,6 @@ const ChatSpace = () => {
   const topicId = router.query.id as unknown as number;
   const { chat } = useAppSelector((state) => state.chat);
 
-  console.log(chat);
-
   return (
     <div className="flex flex-col gap-y-2">
       {chat &&
@@ -18,6 +16,7 @@ const ChatSpace = () => {
             <ChatContent
               key={index}
               id={item.id}
+              sources={item.sources}
               botText={item.botText ?? ""}
               userText={item.userText ?? ""}
               isStreaming={item.isStreaming ?? false}

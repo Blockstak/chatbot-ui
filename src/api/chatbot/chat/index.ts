@@ -1,15 +1,9 @@
-import { ChatResponse } from "./types";
+import { ChatResponse, ChatRequest } from "./types";
 import { rootApi } from "@/state/services/apiService";
 
 export const chatApi = rootApi.injectEndpoints({
   endpoints: (builder) => ({
-    chat: builder.query<
-      ChatResponse,
-      {
-        message: string;
-        topicId: number;
-      }
-    >({
+    chat: builder.query<ChatResponse, ChatRequest>({
       query: ({ message, topicId }) => ({
         url: `/chatbot/chat/?message=${message}&topic_id=${topicId}`,
         timeout: 30000,

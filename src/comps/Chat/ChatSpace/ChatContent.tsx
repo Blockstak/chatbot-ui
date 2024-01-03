@@ -1,9 +1,17 @@
 import Image from "next/image";
-import { useEffect, useState } from "react";
 import Robot from "@/assets/icons/Robot";
+import { useEffect, useState } from "react";
+
 import { setShowSidebar } from "@/state/slices/uiSlice";
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
-import { updateChatContent } from "@/state/slices/chatSlice";
+
+import {
+  Source,
+  updateChatContent,
+  setCurrentSources,
+} from "@/state/slices/chatSlice";
+
+import { useProfileQuery } from "@/api/auth";
 import { useAppDispatch, useAppSelector } from "@/hooks/useStoreTypes";
 import { HiArrowRight, HiOutlinePlusCircle, HiXCircle } from "react-icons/hi";
 
@@ -13,17 +21,20 @@ interface ChatContentProps {
   error?: boolean;
   userText: string;
   isStreaming?: boolean;
+  sources: Source | null;
 }
 
 const ChatContent = ({
   id,
   botText,
+  sources,
   userText,
   error = false,
   isStreaming = false,
 }: ChatContentProps) => {
   const dispatch = useAppDispatch();
   const [open, setOpen] = useState(false);
+  const { data, isLoading, isError } = useProfileQuery();
   const { showSidebar } = useAppSelector((state) => state.ui);
 
   const [wordIndex, setWordIndex] = useState(0);
@@ -42,7 +53,14 @@ const ChatContent = ({
           if (wordIndex === words.length - 1) {
             setIsAnimating(false); // Stop the animation
             clearInterval(interval);
-            dispatch(updateChatContent({ id, isStreaming: false, botText }));
+            dispatch(
+              updateChatContent({
+                id,
+                botText,
+                isStreaming: false,
+                sources: sources ?? null,
+              })
+            );
           }
         }, 100);
 
@@ -52,51 +70,73 @@ const ChatContent = ({
         setAnimatedText(botText);
       }
     }
-  }, [wordIndex, isAnimating, botText, isStreaming, dispatch, id]);
+  }, [wordIndex, isAnimating, botText, isStreaming, dispatch, id, sources]);
 
   return (
     <>
-      <div
-        className={`py-4 px-4 md:px-16 bg-neutral-900 flex flex-col gap-y-4`}
-      >
-        <div className={`flex items-center gap-x-4`}>
-          <div
-            className={`w-10 h-10  bg-neutral-100 rounded-full
-            `}
-          >
-            <Image
-              alt=""
-              width={500}
-              height={500}
-              src="/doggo.png"
-              className="rounded-full object-cover object-center w-full h-full"
-            />
+      <div className="py-4 px-4 md:px-16 bg-neutral-900 flex flex-col gap-y-4">
+        <div className={`flex gap-x-4`}>
+          <div className="w-10 h-10 bg-neutral-100 rounded-full">
+            {data?.profile.profile_photo ? (
+              <Image
+                width={100}
+                height={100}
+                alt="User Logo"
+                src="/placeholder.jpg"
+                className="w-10 h-10 rounded-full object-cover object-center"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-daisy-bush-300">
+                <div className="tracking-[-0.10rem] flex items-center justify-center w-full h-full text-xl font-bold text-neutral-800">
+                  {data?.first_name?.charAt(0)} {data?.last_name?.charAt(0)}
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className={`w-full flex flex-col gap-y-2 -mt-1`}>
+          <div className={`w-full flex flex-col gap-y-2`}>
             <span>{userText}</span>
           </div>
         </div>
       </div>
 
       <div className={`py-4 px-4 md:px-16 flex flex-col gap-y-4`}>
-        <div className={`flex items-center gap-x-4`}>
+        <div className={`flex gap-x-4`}>
           <div className={`w-10 h-10`}>
             <Robot className="w-full h-full" color="#A4A4FD" />
           </div>
 
           <div
-            className={`w-full flex flex-col gap-y-2 ${
+            className={`relative w-full flex flex-col gap-y-2 ${
               error && `text-red-500`
             }`}
           >
             <pre className="whitespace-pre-wrap text-base font-poppins">
-              {botText === "Typing..." || !isStreaming ? botText : animatedText}
+              {botText === "Typing..." ? (
+                <div className="w-min absolute top-4 left-4">
+                  <div className="dot-flashing" />
+                </div>
+              ) : (
+                <> {!isStreaming ? botText : animatedText}</>
+              )}
             </pre>
 
             <button
-              onClick={() => dispatch(setShowSidebar(!showSidebar))}
-              className="ml-auto w-min border border-daisy-bush-200 text-daisy-bush-200 rounded text-sm whitespace-nowrap px-4 py-3 font-medium"
+              onClick={() => {
+                dispatch(
+                  setCurrentSources({
+                    id,
+                    userText,
+                    ...((sources as Pick<
+                      Source,
+                      "page_numbers" | "source_urls" | "text_contents"
+                    >) ?? null),
+                  })
+                );
+
+                dispatch(setShowSidebar(!showSidebar));
+              }}
+              className="transition-colors duration-200 ease-in-out ml-auto w-min border border-daisy-bush-200 text-daisy-bush-200 rounded text-sm whitespace-nowrap px-4 py-3 font-medium hover:border-daisy-bush-400 hover:bg-daisy-bush-400 hover:text-white"
             >
               <span>View Sources</span>
               <HiArrowRight className="inline-block ml-2 w-5 h-5" />

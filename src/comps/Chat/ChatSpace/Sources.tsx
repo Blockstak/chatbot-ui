@@ -1,125 +1,69 @@
-import { forwardRef } from "react";
+import { forwardRef, useMemo } from "react";
 import classNames from "classnames";
 import { HiChevronDown } from "react-icons/hi";
+import { useAppSelector } from "@/hooks/useStoreTypes";
 import * as Accordion from "@radix-ui/react-accordion";
 
-const data = [
-  {
-    id: "1",
-    title: "Is it accessible?",
+export const Sources = () => {
+  const sources = useAppSelector((state) => state.chat.currentSources);
 
-    url: "www.newage.org",
+  const sourcesList = useMemo(() => {
+    return sources?.page_numbers?.map((page, index) => {
+      const url = sources.source_urls[index].replaceAll("\\", "/").split("/");
+      const serializedUrl = url
+        .slice(
+          url.findIndex((item) => item === "media"),
+          url.length
+        )
+        .join("/");
 
-    metadata: {
-      page: "236",
-      journal: "236",
-      doi: "10.1145/2",
-      date: "2013-01-01",
-    },
+      return {
+        url: serializedUrl,
+        id: index.toString(),
+        page: page.toString(),
+        title: sources.userText,
+        excerpt: sources.text_contents[index].replaceAll("●", ""),
+      };
+    });
+  }, [sources]);
 
-    exerpt:
-      "Fermentum risus sit sagittis amet mi pharetra nisl eget elit. Quam sodales nec fames amet pellente sed eget. Lobortis non tempus fringilla tincidunt. Mauris rhoncus volutpat egestas blandit. Ullam mattis congue tempor amet faucibus odio.",
-  },
-  {
-    id: "2",
-    title: "Is it accessible?",
-    url: "www.newage.org",
-    metadata: {
-      page: "236",
-      journal: "236",
-      doi: "10.1145/2",
-      date: "2013-01-01",
-    },
-
-    exerpt:
-      "Fermentum risus sit sagittis amet mi pharetra nisl eget elit. Quam sodales nec fames amet pellente sed eget. Lobortis non tempus fringilla tincidunt. Mauris rhoncus volutpat egestas blandit. Ullam mattis congue tempor amet faucibus odio.",
-  },
-  {
-    id: "3",
-    title: "Is it accessible?",
-
-    url: "www.newage.org",
-
-    metadata: {
-      page: "236",
-      journal: "236",
-      doi: "10.1145/2",
-      date: "2013-01-01",
-    },
-
-    exerpt:
-      "Fermentum risus sit sagittis amet mi pharetra nisl eget elit. Quam sodales nec fames amet pellente sed eget. Lobortis non tempus fringilla tincidunt. Mauris rhoncus volutpat egestas blandit. Ullam mattis congue tempor amet faucibus odio.",
-  },
-  {
-    id: "4",
-    title: "Is it accessible?",
-
-    url: "www.newage.org",
-
-    metadata: {
-      page: "236",
-      journal: "236",
-      doi: "10.1145/2",
-      date: "2013-01-01",
-    },
-
-    exerpt:
-      "Fermentum risus sit sagittis amet mi pharetra nisl eget elit. Quam sodales nec fames amet pellente sed eget. Lobortis non tempus fringilla tincidunt. Mauris rhoncus volutpat egestas blandit. Ullam mattis congue tempor amet faucibus odio.",
-  },
-  {
-    id: "5",
-    title: "Is it accessible?",
-
-    url: "www.newage.org",
-
-    metadata: {
-      page: "236",
-      journal: "236",
-      doi: "10.1145/2",
-      date: "2013-01-01",
-    },
-
-    exerpt:
-      "Fermentum risus sit sagittis amet mi pharetra nisl eget elit. Quam sodales nec fames amet pellente sed eget. Lobortis non tempus fringilla tincidunt. Mauris rhoncus volutpat egestas blandit. Ullam mattis congue tempor amet faucibus odio.",
-  },
-];
-
-export const Sources = () => (
-  <Accordion.Root collapsible type="single" className="p-4">
-    {data.map((item) => (
-      <AccordionItem key={item.id} value={item.id}>
-        <AccordionTrigger className="mb-1">
-          <div>
-            <h2 className="text-lg">{item.title}</h2>
-            <a href={item.url} className="hover:text-daisy-bush-400">
-              {item.url}
-            </a>
-          </div>
-        </AccordionTrigger>
-        <AccordionContent>
-          <div className="flex flex-col gap-y-2">
-            <div className="flex gap-2">
-              {Object.keys(item.metadata).map((key) => {
-                return (
-                  <div
-                    key={key}
-                    className="flex flex-col gap-y-1 justify-center w-full"
+  return (
+    <Accordion.Root collapsible type="single" className="p-4">
+      {sourcesList
+        ?.filter((item) => item.excerpt !== "")
+        .map((item) => (
+          <AccordionItem key={item.id} value={item.id}>
+            <AccordionTrigger className="mb-1">
+              <div className="flex flex-col text-left">
+                <h2 className=" text-lg">{item.title}</h2>
+                <span>
+                  <a
+                    href={`${process.env.API_URL}/${item.url}`}
+                    target="_blank"
+                    className="hover:text-daisy-bush-400 underline"
                   >
-                    <span className="capitalize">{key}</span>
-                    <span>
-                      {item.metadata[key as keyof typeof item.metadata]}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          <p className="mt-4">{item.exerpt}</p>
-        </AccordionContent>
-      </AccordionItem>
-    ))}
-  </Accordion.Root>
-);
+                    Source Url
+                  </a>
+                </span>
+              </div>
+            </AccordionTrigger>
+
+            <AccordionContent>
+              <div className="flex flex-col gap-y-2">
+                <div className="flex gap-2 mt-2">
+                  <span className="font-medium">Page:</span>
+                  <span>{item.page}</span>
+                </div>
+              </div>
+              <pre className="mt-4 font-poppins whitespace-pre-wrap">
+                {item.excerpt}
+              </pre>
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+    </Accordion.Root>
+  );
+};
 
 const AccordionItem = forwardRef<
   HTMLDivElement,

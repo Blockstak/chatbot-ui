@@ -1,4 +1,6 @@
 type Profile = {
+  id: number;
+  user: number;
   credit: number;
   contact: string;
   address: string;
@@ -39,10 +41,10 @@ export type RefreshTokenResponse = {
 };
 
 export type ProfileResponse = {
-  user: {
-    username: string;
-    email: string;
-  };
-
+  email: string;
+  username: string;
   profile: Profile;
+  last_name: string;
+  is_active: boolean;
+  first_name: string;
 };

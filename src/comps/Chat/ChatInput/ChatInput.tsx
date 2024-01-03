@@ -28,7 +28,11 @@ import {
 
 import showAlert from "@/comps/ui/Alert/Alert";
 import { RiLoader4Fill } from "react-icons/ri";
-import { addChatContent, updateChatContent } from "@/state/slices/chatSlice";
+import {
+  addChatContent,
+  updateChatContent,
+  setCurrentSources,
+} from "@/state/slices/chatSlice";
 
 interface FilesObject {
   [key: string]: File;
@@ -79,12 +83,9 @@ const ChatInput = () => {
   const [chat, chatResult] = useLazyChatQuery();
   const [uploaded, setUploaded] = useState(false);
   const topicId = router.query.id as unknown as number;
-  const { data, refetch } = useGetFilesByTopicIdQuery(
-    topicId as unknown as string,
-    {
-      skip,
-    }
-  );
+  const { data } = useGetFilesByTopicIdQuery(topicId as unknown as string, {
+    skip,
+  });
 
   const textbox = useRef<HTMLTextAreaElement | null>(null);
   const [files, setFiles] = useState<FileList | File[] | []>([]);
@@ -209,6 +210,7 @@ const ChatInput = () => {
       dispatch(
         addChatContent({
           id: chatId,
+          sources: null,
           userText: message,
           isStreaming: true,
           botText: "Typing...",
@@ -228,6 +230,7 @@ const ChatInput = () => {
             updateChatContent({
               id: chatId,
               isStreaming: true,
+              sources: res.response_source,
               botText: res.response_message,
             })
           );
@@ -238,6 +241,7 @@ const ChatInput = () => {
         dispatch(
           updateChatContent({
             id: chatId,
+            sources: null,
             botText: "Failed to fetch response. Try again",
           })
         );
@@ -384,7 +388,7 @@ const ChatInput = () => {
         {displayFiles()}
       </div>
 
-      {files.length === 0 && (
+      {Array.from(files).length === 0 && data?.results?.length === 0 && (
         <div className="mt-4 w-full p-5 bg-[#202020] rounded-lg justify-start items-center gap-3 inline-flex">
           <HiOutlineInformationCircle className="w-6 h-6 text-neutral-200" />
           <div className="text-gray-50 text-lg">
