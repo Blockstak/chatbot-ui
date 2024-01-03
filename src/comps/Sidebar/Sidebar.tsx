@@ -20,19 +20,19 @@ import { useAppDispatch, useAppSelector } from "@/hooks/useStoreTypes";
 
 const navItems = [
   {
-    label: "Dashboard",
+    label: "Home",
     icon: <HiOutlineHome className="text-neutral-200 w-6 h-6" />,
     href: "/",
   },
+  // {
+  //   label: "Settings",
+  //   icon: <HiOutlineCog className="text-neutral-200 w-6 h-6" />,
+  //   href: "/settings",
+  // },
   {
-    label: "Dashboard",
-    icon: <HiOutlineCog className="text-neutral-200 w-6 h-6" />,
-    href: "/dashboard",
-  },
-  {
-    label: "Dashboard",
+    label: "Profile",
     icon: <HiOutlineUser className="text-neutral-200 w-6 h-6" />,
-    href: "/dashboard",
+    href: "/profile",
   },
 ];
 

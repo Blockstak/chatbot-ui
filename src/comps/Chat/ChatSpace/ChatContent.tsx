@@ -41,6 +41,11 @@ const ChatContent = ({
   const [isAnimating, setIsAnimating] = useState(true);
   const [animatedText, setAnimatedText] = useState("");
 
+  const fullName =
+    data?.first_name !== "" && data?.last_name !== ""
+      ? `${data?.first_name} ${data?.last_name}`
+      : data.username;
+
   useEffect(() => {
     if (botText !== "Typing..." && isAnimating) {
       if (isStreaming) {
@@ -88,7 +93,7 @@ const ChatContent = ({
             ) : (
               <div className="w-10 h-10 rounded-full bg-daisy-bush-300">
                 <div className="tracking-[-0.10rem] flex items-center justify-center w-full h-full text-xl font-bold text-neutral-800">
-                  {data?.first_name?.charAt(0)} {data?.last_name?.charAt(0)}
+                  {fullName.charAt(0)}
                 </div>
               </div>
             )}
