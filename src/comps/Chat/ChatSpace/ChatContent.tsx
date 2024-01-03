@@ -92,7 +92,7 @@ const ChatContent = ({
               />
             ) : (
               <div className="w-10 h-10 rounded-full bg-daisy-bush-300">
-                <div className="tracking-[-0.10rem] flex items-center justify-center w-full h-full text-xl font-bold text-neutral-800">
+                <div className="capitalize tracking-[-0.10rem] flex items-center justify-center w-full h-full text-xl font-bold text-neutral-800">
                   {fullName.charAt(0)}
                 </div>
               </div>
