@@ -306,7 +306,7 @@ const ChatInput = () => {
                 </span>
                 <div className="flex flex-col">
                   <span className="text-base">
-                    {file.file.split("/").toReversed()[0].split("_").join(" ")}
+                    {file.file.split("/").reverse()[0].split("_").join(" ")}
                   </span>
                   <span className={`inline-block capitalize text-[#9CA3AF]`}>
                     {statusEnum["processed"]?.message}

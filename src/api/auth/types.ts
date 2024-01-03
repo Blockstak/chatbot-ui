@@ -1,6 +1,6 @@
 type Profile = {
-  id: number;
-  user: number;
+  id?: number;
+  user?: number;
   credit: number;
   contact: string;
   address: string;
