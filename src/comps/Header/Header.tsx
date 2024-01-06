@@ -28,7 +28,7 @@ export default function Header() {
               width={100}
               height={100}
               alt="User Logo"
-              src="/placeholder.jpg"
+              src={process.env.API_URL + data?.profile?.profile_photo}
               className="w-10 h-10 rounded-full object-cover object-center"
             />
           ) : (

@@ -1,5 +1,5 @@
-import { forwardRef, useMemo } from "react";
 import classNames from "classnames";
+import { forwardRef, useMemo } from "react";
 import { HiChevronDown } from "react-icons/hi";
 import { useAppSelector } from "@/hooks/useStoreTypes";
 import * as Accordion from "@radix-ui/react-accordion";
@@ -20,30 +20,25 @@ export const Sources = () => {
       return {
         url: serializedUrl,
         id: index.toString(),
-        page: page.toString(),
         title: sources.userText,
+        page: (page + 1).toString(),
         excerpt: sources.text_contents[index].replaceAll("●", ""),
       };
     });
   }, [sources]);
 
   return (
-    <Accordion.Root collapsible type="single" className="p-4">
+    <Accordion.Root collapsible type="single" className="px-4">
       {sourcesList
         ?.filter((item) => item.excerpt !== "")
         .map((item, index) => (
           <AccordionItem key={item.id} value={item.id}>
-            <AccordionTrigger className="mb-1">
+            <AccordionTrigger>
               <div className="flex flex-col text-left">
-                <h2 className="text-base">Source {index + 1}</h2>
-                <span>
-                  <a
-                    href={`${process.env.API_URL}/${item.url}`}
-                    target="_blank"
-                    className="hover:text-daisy-bush-400 underline"
-                  >
-                    Source Url
-                  </a>
+                <h2 className="text-base mb-1">Source {index + 1}</h2>
+
+                <span className="text-sm rounded-full py-1 px-2 border-2 border-daisy-bush-500">
+                  {item.url.split("/")?.reverse()[0]?.split("_")?.join(" ")}
                 </span>
               </div>
             </AccordionTrigger>
