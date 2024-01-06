@@ -9,17 +9,17 @@ export const filesApi = rootApi.injectEndpoints({
         method: "POST",
         body: payload,
       }),
-      //invalidatesTags: ["Files"],
+      invalidatesTags: ["Files"],
     }),
 
     getFiles: builder.query<UploadFileResponse, null>({
       query: () => ({ url: `/chatbot/files/` }),
-      //providesTags: ["Files"],
+      providesTags: ["Files"],
     }),
 
     getFilesByTopicId: builder.query<UploadFileResponse, string>({
       query: (topic_id) => ({ url: `/chatbot/files/?topic_id=${topic_id}` }),
-      //providesTags: ["Files"],
+      providesTags: ["Files"],
     }),
   }),
 });

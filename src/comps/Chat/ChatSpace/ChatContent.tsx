@@ -7,6 +7,7 @@ import * as AlertDialog from "@radix-ui/react-alert-dialog";
 
 import {
   Source,
+  FileResponse,
   updateChatContent,
   setCurrentSources,
 } from "@/state/slices/chatSlice";
@@ -22,10 +23,12 @@ interface ChatContentProps {
   userText: string;
   isStreaming?: boolean;
   sources: Source | null;
+  files: FileResponse | null;
 }
 
 const ChatContent = ({
   id,
+  files,
   botText,
   sources,
   userText,
@@ -63,6 +66,7 @@ const ChatContent = ({
                 id,
                 botText,
                 isStreaming: false,
+                files: files ?? null,
                 sources: sources ?? null,
               })
             );
@@ -75,11 +79,36 @@ const ChatContent = ({
         setAnimatedText(botText);
       }
     }
-  }, [wordIndex, isAnimating, botText, isStreaming, dispatch, id, sources]);
+  }, [
+    id,
+    files,
+    botText,
+    sources,
+    dispatch,
+    wordIndex,
+    isAnimating,
+    isStreaming,
+  ]);
 
   return (
     <>
-      <div className="py-4 px-4 md:px-16 bg-neutral-900 flex flex-col gap-y-4">
+      <div className="py-4 px-4 md:px-16 bg-neutral-900 flex flex-col">
+        <div className="mb-4 flex flex-wrap gap-x-2 w-full items-center">
+          {files?.results.map((file, index) => (
+            <div
+              key={index}
+              className={`rounded-full py-2 px-4 border-2 border-daisy-bush-500 flex gap-x-2`}
+            >
+              <span className="font-medium">
+                {file?.file?.split("/")?.reverse()[0]?.split("_")?.join(" ")}
+              </span>
+              {/* <HiXCircle className="cursor-pointer text-neutral-200 w-6 h-6" /> */}
+            </div>
+          ))}
+
+          {/* <HiOutlinePlusCircle className="cursor-pointer text-neutral-200 w-8 h-8" /> */}
+        </div>
+
         <div className={`flex gap-x-4`}>
           <div className="w-10 h-10 bg-neutral-100 rounded-full">
             {data?.profile.profile_photo ? (
@@ -116,15 +145,15 @@ const ChatContent = ({
               error && `text-red-500`
             }`}
           >
-            <pre className="whitespace-pre-wrap text-base font-poppins">
-              {botText === "Typing..." ? (
-                <div className="w-min absolute top-4 left-4">
-                  <div className="dot-flashing" />
-                </div>
-              ) : (
-                <> {!isStreaming ? botText : animatedText}</>
-              )}
-            </pre>
+            {botText === "Typing..." ? (
+              <div className="w-min absolute top-4 left-4">
+                <div className="dot-flashing" />
+              </div>
+            ) : (
+              <pre className="whitespace-pre-wrap text-base font-poppins">
+                {!isStreaming ? botText : animatedText}
+              </pre>
+            )}
 
             <button
               onClick={() => {
@@ -186,22 +215,4 @@ export default ChatContent;
     </AlertDialog.Content>
   </AlertDialog.Portal>
 </AlertDialog.Root>; */
-}
-
-{
-  /* {type === "user" && (
-        <div className="mb-4 flex flex-wrap gap-x-2 gap-y-4 w-full items-center">
-          {[...Array(4)].map((_, index) => (
-            <div
-              key={index}
-              className={`rounded-full py-2 px-4 border-2 border-daisy-bush-500 flex gap-x-2`}
-            >
-              <span className="font-medium">licenseCo-Agre....</span>
-              <HiXCircle className="cursor-pointer text-neutral-200 w-6 h-6" />
-            </div>
-          ))}
-
-          <HiOutlinePlusCircle className="cursor-pointer text-neutral-200 w-8 h-8" />
-        </div>
-      )} */
 }

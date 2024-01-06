@@ -1,5 +1,20 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
+export type File = {
+  id: number;
+  file: string;
+  topic: number;
+  topic_name: string;
+  uploaded_at: Date | string;
+};
+
+export type FileResponse = {
+  count: number;
+  results: File[];
+  next: string | number | null;
+  previous: string | number | null;
+};
+
 export type Source = {
   id?: string;
   userText?: string;
@@ -16,15 +31,16 @@ type Chat = {
   userText?: string;
   isStreaming?: boolean;
   sources: Source | null;
+  files: FileResponse | null;
 };
 
 type ChatState = {
-  chat: Chat[] | null;
+  chat: Chat[];
   currentSources: Source | null;
 };
 
 const initialState: ChatState = {
-  chat: null,
+  chat: [],
   currentSources: null,
 };
 
@@ -33,49 +49,20 @@ const chatSlice = createSlice({
   initialState,
   reducers: {
     addChatContent: (state, action: PayloadAction<Chat>) => {
-      if (state.chat) {
-        state.chat.push({
-          id: action.payload.id,
-          topic: action.payload.topic,
-          sources: action.payload.sources,
-          botText: action.payload.botText,
-          userText: action.payload.userText,
-          error: action.payload.error || false,
-          isStreaming: action.payload.isStreaming,
-        });
-      } else {
-        state.chat = [
-          {
-            id: action.payload.id,
-            topic: action.payload.topic,
-            botText: action.payload.botText,
-            sources: action.payload.sources,
-            userText: action.payload.userText,
-            error: action.payload.error || false,
-            isStreaming: action.payload.isStreaming,
-          },
-        ];
-      }
+      state.chat.push(action.payload);
     },
 
-    updateChatContent: (state, action: PayloadAction<Chat>) => {
-      if (state.chat) {
-        const index = state.chat.findIndex(
-          (item) => item.id === action.payload.id
-        );
+    updateChatContent: ({ chat }, action: PayloadAction<Chat>) => {
+      const index = chat.findIndex((item) => item.id === action.payload.id);
 
-        state.chat[index] = {
-          ...state.chat[index],
-          sources: action.payload.sources,
-          botText: action.payload.botText,
-          error: action.payload.error || false,
-          isStreaming: action.payload.isStreaming,
-        };
-      }
+      chat[index] = {
+        ...chat[index],
+        ...action.payload,
+      };
     },
 
     clearChatContent: (state) => {
-      state.chat = null;
+      state.chat = [];
     },
 
     setCurrentSources: (state, action: PayloadAction<Source | null>) => {

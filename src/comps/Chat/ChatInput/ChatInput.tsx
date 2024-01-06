@@ -28,6 +28,7 @@ import {
 
 import showAlert from "@/comps/ui/Alert/Alert";
 import { RiLoader4Fill } from "react-icons/ri";
+
 import {
   addChatContent,
   updateChatContent,
@@ -204,6 +205,7 @@ const ChatInput = () => {
     if (textbox.current?.value) {
       const message = textbox.current.value;
       textbox.current.value = "";
+      setFiles([]);
 
       const chatId = uuidv4();
 
@@ -215,6 +217,7 @@ const ChatInput = () => {
           isStreaming: true,
           botText: "Typing...",
           topic: Number(topicId),
+          files: data ? data : null,
         })
       );
 
@@ -230,6 +233,7 @@ const ChatInput = () => {
             updateChatContent({
               id: chatId,
               isStreaming: true,
+              files: data ? data : null,
               sources: res.response_source,
               botText: res.response_message,
             })
@@ -242,6 +246,7 @@ const ChatInput = () => {
           updateChatContent({
             id: chatId,
             sources: null,
+            files: data ? data : null,
             botText: "Failed to fetch response. Try again",
           })
         );
@@ -254,11 +259,11 @@ const ChatInput = () => {
   const renderFiles = () => {
     if (files) {
       return (
-        <div className="w-full flex flex-wrap justify-between gap-2">
+        <div className="w-full flex flex-wrap justify-between gap-2 mt-2">
           {Array.from(files).map((file) => (
             <div
               key={file.name}
-              className="flex -mx-1 basis-full md:basis-1/2 items-center justify-between p-4 border rounded-lg font-medium"
+              className="flex basis-full md:basis-1/2 items-center justify-between p-4 border rounded-lg font-medium"
             >
               <div className="flex gap-x-2">
                 <span className="cursor-pointer text-neutral-200">
@@ -291,53 +296,26 @@ const ChatInput = () => {
     }
   };
 
-  const displayFiles = () => {
-    if (data?.results) {
-      return (
-        <div className="w-full flex flex-wrap justify-between gap-2 my-1">
-          {data?.results.map((file) => (
-            <div
-              key={file.file}
-              className="flex -mx-1 basis-full md:basis-1/2 items-center justify-between p-4 border rounded-lg font-medium"
-            >
-              <div className="flex gap-x-2">
-                <span className="cursor-pointer text-neutral-200">
-                  {statusEnum["processed"]?.icon}
-                </span>
-                <div className="flex flex-col">
-                  <span className="text-base">
-                    {file.file.split("/").reverse()[0].split("_").join(" ")}
-                  </span>
-                  <span className={`inline-block capitalize text-[#9CA3AF]`}>
-                    {statusEnum["processed"]?.message}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      );
-    }
-  };
-
   return (
     <div className={`max-w-6xl mx-auto`}>
       {/* <Suggestions /> */}
 
       <div className={files && `border rounded-lg p-4`}>
         <div
-          className={`flex items-center gap-x-2 mt-1 ${
+          className={`flex items-center gap-x-2 ${
             !files ? `border` : ``
-          } rounded-lg `}
+          } rounded-lg`}
         >
           <textarea
             rows={1}
             ref={textbox}
             onChange={adjustHeight}
             placeholder={placeHolder}
-            disabled={fetchingChatResponse}
+            disabled={
+              fetchingChatResponse || (data && data?.results?.length === 0)
+            }
             onKeyDown={(e) => e.key === "Enter" && dispatch(initiateChat)}
-            className={`disabled:pointer-events-none disabled:opacity-40 p-4 focus:outline-none bg-transparent flex-grow outline-none resize-none w-[95%] overflow-hidden`}
+            className={`disabled:pointer-events-none disabled:opacity-40 py-2 focus:outline-none bg-transparent flex-grow outline-none resize-none w-[95%] overflow-hidden`}
           />
 
           {fetchingChatResponse ? (
@@ -351,7 +329,7 @@ const ChatInput = () => {
                 <PaperClip
                   color={files.length > 0 ? "#a4a4fd" : "#ffffff"}
                   className={`${
-                    files.length > 0
+                    files.length > 0 || (data && data?.results?.length > 0)
                       ? `border-2 border-daisy-bush-300`
                       : `bg-daisy-bush-300`
                   } w-10 h-10 rounded-lg p-2`}
@@ -383,10 +361,8 @@ const ChatInput = () => {
             onChange={(e) => setFiles(e.target.files || [])}
           />
         </div>
-
-        {renderFiles()}
-        {displayFiles()}
       </div>
+      {renderFiles()}
 
       {Array.from(files).length === 0 && data?.results?.length === 0 && (
         <div className="mt-4 w-full p-5 bg-[#202020] rounded-lg justify-start items-center gap-3 inline-flex">

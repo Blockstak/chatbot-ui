@@ -31,11 +31,11 @@ export const Sources = () => {
     <Accordion.Root collapsible type="single" className="p-4">
       {sourcesList
         ?.filter((item) => item.excerpt !== "")
-        .map((item) => (
+        .map((item, index) => (
           <AccordionItem key={item.id} value={item.id}>
             <AccordionTrigger className="mb-1">
               <div className="flex flex-col text-left">
-                <h2 className=" text-lg">{item.title}</h2>
+                <h2 className="text-base">Source {index + 1}</h2>
                 <span>
                   <a
                     href={`${process.env.API_URL}/${item.url}`}

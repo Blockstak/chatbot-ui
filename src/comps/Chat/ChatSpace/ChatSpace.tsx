@@ -16,6 +16,7 @@ const ChatSpace = () => {
             <ChatContent
               key={index}
               id={item.id}
+              files={item.files}
               sources={item.sources}
               botText={item.botText ?? ""}
               userText={item.userText ?? ""}

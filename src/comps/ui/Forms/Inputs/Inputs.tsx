@@ -56,10 +56,15 @@ const textInputStyles = cva(`${styles[`ui-inputs`]}`, {
 
 interface ITextInputProps
   extends InputProps,
-    VariantProps<typeof textInputStyles> {}
+    VariantProps<typeof textInputStyles> {
+  labelDirection?: "left" | "top";
+}
 
 export const TextInput = forwardRef<HTMLInputElement, ITextInputProps>(
-  function TextInput({ label, required, className, ...props }, ref) {
+  function TextInput(
+    { label, required, className, labelDirection = "top", ...props },
+    ref
+  ) {
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
     const {
@@ -72,8 +77,9 @@ export const TextInput = forwardRef<HTMLInputElement, ITextInputProps>(
 
     return (
       <div
-        className={`relative flex flex-col ${className}
-        `}
+        className={`relative flex ${
+          labelDirection === "left" ? `justify-between gap-x-16` : `flex-col`
+        }  ${className}`}
       >
         <label className="flex items-center mb-1">
           <span className="inline-block text-neutral-200 text-lg font-medium">

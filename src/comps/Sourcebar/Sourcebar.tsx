@@ -23,10 +23,10 @@ export default function Sidebar() {
           className="fixed bg-neutral-900 top-0 right-0 text-daisy-bush-50 w-full max-w-sm h-screen overflow-auto"
         >
           <div className="flex justify-between items-center border-b border-neutral-200 px-4 py-6">
-            <h2 className="text-xl font-medium">Sources</h2>
+            <h2 className="text-lg font-medium">Sources</h2>
 
             <AiOutlineClose
-              className="h-8 w-8 mb-2 cursor-pointer"
+              className="h-6 w-6 mb-2 cursor-pointer"
               onClick={() => dispatch(setShowSidebar(!showSidebar))}
             />
           </div>

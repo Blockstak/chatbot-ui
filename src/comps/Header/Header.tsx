@@ -18,12 +18,12 @@ export default function Header() {
 
   return (
     <nav className="h-24 bg-neutral-800">
-      <div className="flex items-center justify-between px-4 h-full">
+      <div className="flex items-center justify-between px-4 md:px-16 h-full">
         <Link className="text-neutral-200" href={router.pathname}>
           <RiDoorOpenLine className="w-12 h-12" />
         </Link>
         <div className="px-6 py-3 bg-neutral-900 rounded-lg inline-flex items-center gap-x-2">
-          {data?.profile.profile_photo ? (
+          {data?.profile?.profile_photo ? (
             <Image
               width={100}
               height={100}
