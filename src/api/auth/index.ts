@@ -46,7 +46,8 @@ export const authApi = rootApi.injectEndpoints({
     }),
 
     profile: builder.query<ProfileResponse, void>({
-      query: () => ({ url: `/accounts/user-profile/` }),
+      // query: () => ({ url: `/accounts/user-profile/` }),
+      query: () => ({ url: `/accounts/profile/` }),
     }),
   }),
 });

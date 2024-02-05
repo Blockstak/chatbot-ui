@@ -45,11 +45,6 @@ import {
 } from "@/state/slices/chatSlice";
 import BarLoader from "@/comps/ui/Loader/BarLoader";
 import UploadedLoader from "@/comps/ui/Loader/UploadedLoader";
-import FileUploading from "@/comps/ui/FileUploadStatus/FileUploading";
-import FileUploadFailed from "@/comps/ui/FileUploadStatus/FileUploadFailed";
-import FileUploaded from "@/comps/ui/FileUploadStatus/FileUploaded";
-import FileProcessing from "@/comps/ui/FileUploadStatus/FileProcessing";
-import FileProcessed from "@/comps/ui/FileUploadStatus/FileProcessed";
 
 interface FilesObject {
   [key: string]: File;
@@ -93,7 +88,7 @@ const statusEnum = {
   },
 };
 
-const ChatInput = () => {
+const ChatInputBackup = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const [skip, setSkip] = useState(false);
@@ -107,31 +102,18 @@ const ChatInput = () => {
 
   const { viewSuggestions } = useAppSelector((state) => state.ui);
 
-  // ==================
-
-  interface EnhancedFile {
-    file: File;
-    status:
-      | "idle"
-      | "error"
-      | "uploaded"
-      | "uploading"
-      | "processed"
-      | "processing"
-      | "upload_failed"
-      | "process_failed";
-    errorMessage?: string; // Optional, for storing error messages if any
-  }
-  type FilesState = EnhancedFile[];
-  const [files, setFiles] = useState<FilesState>([]);
-
-  // =========================
-
   const textbox = useRef<HTMLTextAreaElement | null>(null);
+  const [files, setFiles] = useState<FileList | File[] | []>([]);
   const [fetchingChatResponse, setFetchingChatResponse] = useState(false);
   const [placeHolder, setPlaceHolder] = useState("Upload some documents");
   const [uploadFilesMutation, uploadFilesResult] = useUploadFilesMutation();
   const [processDocsMutation, processDocsResult] = useProcessDocsMutation();
+
+  interface FileWithId {
+    file: File;
+    fileId: string;
+  }
+  const [selectedFiles, setSelectedFiles] = useState<FileWithId[]>([]);
 
   const [status, setStatus] = useState<
     | "idle"
@@ -144,6 +126,12 @@ const ChatInput = () => {
     | "process_failed"
   >("idle");
 
+  type StatusObjType<T> = {
+    [key: string]: T;
+  };
+
+  const [statusObj, setStatusObj] = useState<StatusObjType<any>>({});
+
   const adjustHeight = () => {
     if (textbox?.current) {
       textbox.current.style.height = "inherit";
@@ -151,7 +139,7 @@ const ChatInput = () => {
     }
   };
 
-  const uploadFilesOld = useCallback(
+  const uploadFiles = useCallback(
     async (files: FileList | []) => {
       setSkip(true);
 
@@ -200,6 +188,7 @@ const ChatInput = () => {
         } catch (error) {
           console.log(error);
           setStatus("error");
+
           showAlert("File upload failed. Try again", "error");
         }
       });
@@ -207,97 +196,13 @@ const ChatInput = () => {
     [processDocsMutation, topicId, uploadFilesMutation]
   );
 
-  const delay = (ms: number) =>
-    new Promise((resolve) => setTimeout(resolve, ms));
-
-  const uploadFiles = useCallback(async () => {
-    // Early return if there's nothing to upload
-    if (files.length === 0) return;
-
-    // Map through files and upload them individually
-    const uploadPromises = files.map(async (enhancedFile, index) => {
-      const formData = new FormData();
-      formData.append("file", enhancedFile.file);
-      formData.append("topic", topicId as unknown as string);
-
-      try {
-        // Start uploading
-        setFiles((prevFiles) =>
-          prevFiles.map((file, fileIndex) =>
-            fileIndex === index ? { ...file, status: "uploading" } : file
-          )
-        );
-
-        await delay(5000);
-
-        const res = await uploadFilesMutation(formData).unwrap();
-
-        // Check upload success and process document
-        if (res) {
-          setFiles((prevFiles) =>
-            prevFiles.map((file, fileIndex) =>
-              fileIndex === index ? { ...file, status: "processing" } : file
-            )
-          );
-
-          // Process document
-          const processDocsResponse = await processDocsMutation({
-            id: topicId,
-          }).unwrap();
-          if (processDocsResponse.msg === "Documents have processed!") {
-            setFiles((prevFiles) =>
-              prevFiles.map((file, fileIndex) =>
-                fileIndex === index ? { ...file, status: "processed" } : file
-              )
-            );
-          } else {
-            throw new Error("Processing failed");
-          }
-        }
-      } catch (error) {
-        console.error(error);
-        setFiles((prevFiles) =>
-          prevFiles.map((file, fileIndex) =>
-            fileIndex === index
-              ? {
-                  ...file,
-                  status: "error",
-                  // errorMessage: error?.message,
-                }
-              : file
-          )
-        );
-      }
-    });
-
-    await Promise.all(uploadPromises);
-  }, [files, topicId, uploadFilesMutation, processDocsMutation]);
-
   useLayoutEffect(adjustHeight, []);
 
   useEffect(() => {
-    console.log("files", files);
-  }, [files]);
-
-  useEffect(() => {
-    console.log("router change files", files);
-    setFiles([]);
-  }, [topicId]);
-
-  useEffect(() => {
-    const hasNonUploadedFiles = files.some(
-      (file) =>
-        file.status === "idle" ||
-        file.status === "error" ||
-        file.status === "upload_failed" ||
-        file.status === "process_failed"
-    );
-
-    if (hasNonUploadedFiles && !uploaded) {
-      uploadFiles();
+    if (files.length > 0 && uploaded === false) {
+      uploadFiles((files as FileList) || []);
     }
   }, [files, uploadFiles, uploaded]);
-  // }, [files, uploadFiles, uploaded]);
 
   useEffect(() => {
     setPlaceHolder(
@@ -389,50 +294,40 @@ const ChatInput = () => {
   const renderFiles = () => {
     if (files) {
       return (
-        <div className="w-full grid grid-cols-2 gap-2 mt-2">
-          {files.map((enhancedFile, index) => (
-            <div key={index} className="w-full font-medium">
-              {enhancedFile.status === "uploading" && (
-                <FileUploading file={enhancedFile.file} />
-              )}
+        <div className="w-full flex flex-wrap justify-between gap-2 mt-2">
+          {Array.from(files).map((file) => (
+            <div
+              key={file.name}
+              className="flex basis-full md:basis-1/2 items-center justify-between p-4 border border-green-500 rounded-lg font-medium"
+            >
+              <div className="flex gap-x-2">
+                <span className="cursor-pointer text-neutral-200">
+                  {statusEnum[status]?.icon}
+                </span>
 
-              {["upload_failed", "process_failed", "error"].includes(
-                enhancedFile.status
-              ) && (
-                <FileUploadFailed
-                  file={enhancedFile.file}
-                  message={enhancedFile.errorMessage || "Error"}
-                />
-              )}
-              {enhancedFile.status === "processing" && (
-                <>
-                  {<FileUploaded file={enhancedFile.file} />}
-                  {<FileProcessing file={enhancedFile.file} />}
-                </>
-              )}
-              {enhancedFile.status === "processed" && (
-                <>
-                  {<FileUploaded file={enhancedFile.file} />}
-                  {<FileProcessed file={enhancedFile.file} />}
-                </>
-              )}
+                <div className="flex flex-col">
+                  <span className="text-base">{file.name}</span>
+                  <span
+                    onClick={() => tryAgain(statusEnum[status]?.message ?? "")}
+                    className={`inline-block text-sm italic text-[#F0FDF4] font-normal`}
+                  >
+                    {statusEnum[status]?.message}
+                  </span>
+                </div>
+              </div>
+
+              <HiXCircle
+                className="cursor-pointer text-[#9CA3AF] w-6 h-6"
+                onClick={() =>
+                  setFiles(
+                    Array.from(files).filter((f) => f.name !== file.name)
+                  )
+                }
+              />
             </div>
           ))}
         </div>
       );
-    }
-  };
-
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = event.target.files;
-    if (selectedFiles) {
-      const enhancedFiles: FilesState = Array.from(selectedFiles).map(
-        (file) => ({
-          file,
-          status: "idle",
-        })
-      );
-      setFiles(enhancedFiles);
     }
   };
 
@@ -442,8 +337,6 @@ const ChatInput = () => {
         viewSuggestions ? "hidden" : "block"
       } max-w-6xl mx-auto bg-surface-secondary p-7 rounded-3xl relative`}
     >
-      {/* <Suggestions /> */}
-
       <div className={files && `border rounded-lg p-4 `}>
         <div
           className={`flex items-center gap-x-2 ${
@@ -506,11 +399,13 @@ const ChatInput = () => {
             accept="pdf/*"
             id="upload-files"
             className="hidden"
-            onChange={handleFileSelect}
+            onChange={(e) => setFiles(e.target.files || [])}
+            // onChange={handleFileSelect}
           />
         </div>
       </div>
 
+      {/* {renderFiles()} */}
       <div
         className={`${
           minimizeInputBar ? "max-h-0" : "max-h-[300px]"
@@ -543,4 +438,4 @@ const ChatInput = () => {
   );
 };
 
-export default ChatInput;
+export default ChatInputBackup;

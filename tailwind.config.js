@@ -36,6 +36,9 @@ module.exports = {
           900: "#191919",
           950: "#121212",
         },
+        "surface-primary": "#1B1825",
+        "surface-secondary": "#05030C",
+        "surface-tertiary": "#07050F",
       },
 
       fontFamily: {

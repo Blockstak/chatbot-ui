@@ -5,9 +5,11 @@ import Header from "@/comps/Header";
 import Sidebar from "@/comps/Sidebar";
 import Layout from "@/comps/Layout/Layout";
 import withAuth from "@/comps/HOC/withAuth";
+
 import { SubmitHandler } from "react-hook-form";
 import { TextInput } from "@/comps/ui/Forms/Inputs";
 import { Form, useZodForm } from "@/comps/ui/Forms/Form";
+
 import { useGetTopicsQuery } from "@/api/chatbot/topics";
 import StaticLoader from "@/comps/ui/Loader/StaticLoader";
 import { HiOutlineDocumentArrowUp } from "react-icons/hi2";
@@ -33,19 +35,20 @@ function Profile() {
     schema: schema,
   });
 
-  const onSubmit: SubmitHandler<FormData> = async (data) => {};
+  const onSubmit: SubmitHandler<FormData> = async (data) => {
+    console.log({ data });
+  };
 
   if (isTopicsLoading) return <StaticLoader />;
-
-  console.log(data);
+  // console.log(data);
 
   return (
     <Layout>
       <Sidebar />
       <div className="relative md:ml-[20rem]">
-        <div className="min-h-screen relative">
-          <Header />
-          <div className="max-w-5xl py-8 bg-neutral-900 rounded-lg flex-col gap-8 flex w-full mx-auto">
+        <div className="min-h-screen relative flex items-center">
+          {/* <Header /> */}
+          <div className="max-w-5xl py-8 bg-surface-secondary rounded-lg flex-col gap-8 flex w-full mx-auto">
             <div className="pl-8 pr-16 border-b border-gray-400 gap-8 inline-flex">
               <div className="p-2.5 border-b-4 border-indigo-200 items-center gap-4 flex">
                 <div className="text-indigo-200 text-xl font-medium">
@@ -166,6 +169,19 @@ function Profile() {
                     defaultValue={data?.profile?.contact}
                   />
                 </div>
+
+                {/* <div className="self-stretch h-24 pr-16 border-t border-gray-400 justify-end items-end gap-8 inline-flex">
+                  <button className="px-4 py-3 rounded-lg border border-gray-400 justify-center items-center gap-4 flex">
+                    <span className="text-gray-200 text-lg font-medium">
+                      Cancel
+                    </span>
+                  </button>
+                  <button className="transition-colors duration-200 ease-in-out hover:bg-daisy-bush-500 px-4 py-3 bg-daisy-bush-400 rounded-lg justify-center items-center gap-4 flex">
+                    <span className="text-gray-50 text-lg font-medium">
+                      Save Changes
+                    </span>
+                  </button>
+                </div> */}
               </Form>
             </div>
             <div className="self-stretch h-24 pr-16 border-t border-gray-400 justify-end items-end gap-8 inline-flex">
@@ -174,7 +190,10 @@ function Profile() {
                   Cancel
                 </span>
               </button>
-              <button className="transition-colors duration-200 ease-in-out hover:bg-daisy-bush-500 px-4 py-3 bg-daisy-bush-400 rounded-lg justify-center items-center gap-4 flex">
+              <button
+                onClick={() => onSubmit(form.getValues())}
+                className="transition-colors duration-200 ease-in-out hover:bg-daisy-bush-500 px-4 py-3 bg-daisy-bush-400 rounded-lg justify-center items-center gap-4 flex"
+              >
                 <span className="text-gray-50 text-lg font-medium">
                   Save Changes
                 </span>

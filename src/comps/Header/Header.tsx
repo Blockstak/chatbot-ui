@@ -8,8 +8,8 @@ export default function Header() {
   const router = useRouter();
   const { data, isLoading, isError } = useProfileQuery();
 
-  if (isLoading) return <div>Loading...</div>;
-  if (isError) return <div>Something went wrong...</div>;
+  // if (isLoading) return <div>Loading...</div>;
+  // if (isError) return <div>Something went wrong...</div>;
 
   const fullName =
     data?.first_name !== "" && data?.last_name !== ""
@@ -19,9 +19,9 @@ export default function Header() {
   return (
     <nav className="h-24 bg-neutral-800">
       <div className="flex items-center justify-between px-4 md:px-16 h-full">
-        <Link className="text-neutral-200" href={router.pathname}>
+        {/* <Link className="text-neutral-200" href={router.pathname}>
           <RiDoorOpenLine className="w-12 h-12" />
-        </Link>
+        </Link> */}
         <div className="px-6 py-3 bg-neutral-900 rounded-lg inline-flex items-center gap-x-2">
           {data?.profile?.profile_photo ? (
             <Image
