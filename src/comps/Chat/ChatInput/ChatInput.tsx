@@ -51,10 +51,6 @@ import FileUploaded from "@/comps/ui/FileUploadStatus/FileUploaded";
 import FileProcessing from "@/comps/ui/FileUploadStatus/FileProcessing";
 import FileProcessed from "@/comps/ui/FileUploadStatus/FileProcessed";
 
-interface FilesObject {
-  [key: string]: File;
-}
-
 const statusEnum = {
   idle: null,
   error: {

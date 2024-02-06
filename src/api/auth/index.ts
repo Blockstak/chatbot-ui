@@ -1,7 +1,7 @@
 import { rootApi } from "@/state/services/apiService";
 
 import {
-  LoginRespose,
+  LoginResponse,
   LoginFormData,
   VerifyTokenData,
   ProfileResponse,
@@ -9,6 +9,12 @@ import {
   RegisterFormData,
   RefreshTokenData,
   RefreshTokenResponse,
+  UpdateNameResponse,
+  UpdateNameFormData,
+  UpdatePasswordResponse,
+  UpdatePasswordFormData,
+  UpdatePhotoResponse,
+  UpdatePhotoFormData,
 } from "./types";
 
 export const authApi = rootApi.injectEndpoints({
@@ -21,7 +27,7 @@ export const authApi = rootApi.injectEndpoints({
       }),
     }),
 
-    login: builder.mutation<LoginRespose, LoginFormData>({
+    login: builder.mutation<LoginResponse, LoginFormData>({
       query: (payload) => ({
         url: `/accounts/api/token/`,
         method: "POST",
@@ -45,6 +51,33 @@ export const authApi = rootApi.injectEndpoints({
       }),
     }),
 
+    updatePhoto: builder.mutation<UpdatePhotoResponse, UpdatePhotoFormData>({
+      query: (payload) => ({
+        url: `/accounts/profile/update-photo/`,
+        method: "PATCH",
+        body: payload,
+      }),
+    }),
+
+    updateName: builder.mutation<UpdateNameResponse, UpdateNameFormData>({
+      query: (payload) => ({
+        url: `/accounts/profile/update/`,
+        method: "PUT",
+        body: payload,
+      }),
+    }),
+
+    updatePassword: builder.mutation<
+      UpdatePasswordResponse,
+      UpdatePasswordFormData
+    >({
+      query: (payload) => ({
+        url: `/accounts/change-password/`,
+        method: "POSt",
+        body: payload,
+      }),
+    }),
+
     profile: builder.query<ProfileResponse, void>({
       // query: () => ({ url: `/accounts/user-profile/` }),
       query: () => ({ url: `/accounts/profile/` }),
@@ -58,4 +91,7 @@ export const {
   useVerifyMutation,
   useRefreshMutation,
   useRegisterMutation,
+  useUpdateNameMutation,
+  useUpdatePasswordMutation,
+  useUpdatePhotoMutation,
 } = authApi;
