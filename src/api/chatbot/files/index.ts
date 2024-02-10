@@ -1,5 +1,7 @@
 import { rootApi } from "@/state/services/apiService";
 import { UploadFileFormData, UploadFileResponse } from "./types";
+import axios from "axios";
+import { getToken } from "@/utils/token";
 
 export const filesApi = rootApi.injectEndpoints({
   endpoints: (builder) => ({

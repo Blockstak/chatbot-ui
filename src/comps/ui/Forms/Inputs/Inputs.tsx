@@ -108,15 +108,15 @@ export const TextInput = forwardRef<HTMLInputElement, ITextInputProps>(
               <>
                 <HiEyeOff
                   onClick={() => setIsPasswordVisible(!isPasswordVisible)}
-                  className={`absolute right-3 top-14 text-gray-500 w-5 h-5 cursor-pointer ${
+                  className={`absolute right-3  text-gray-500 w-5 h-5 cursor-pointer ${
                     isPasswordVisible ? `block` : `hidden`
-                  }`}
+                  } ${labelDirection === "top" ? "top-14" : "top-6"} `}
                 />
                 <HiEye
                   onClick={() => setIsPasswordVisible(!isPasswordVisible)}
-                  className={`absolute right-3 top-14 text-gray-500 w-5 h-5 cursor-pointer ${
+                  className={`absolute right-3  text-gray-500 w-5 h-5 cursor-pointer ${
                     isPasswordVisible ? `hidden` : `block`
-                  }`}
+                  } ${labelDirection === "top" ? "top-14" : "top-6"} `}
                 />
               </>
             )}

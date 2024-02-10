@@ -92,12 +92,12 @@ const ChatContent = ({
 
   return (
     <>
-      <div className="py-4 px-4 md:px-16 bg-neutral-900 flex flex-col">
-        <div className="mb-4 flex flex-wrap gap-x-2 w-full items-center">
+      <div className="py-4 px-4 md:px-16 bg-surface-tertiary flex flex-col">
+        <div className="max-w-6xl mx-auto mb-4 flex flex-wrap gap-x-2 w-full items-center">
           {files?.results.map((file, index) => (
             <div
               key={index}
-              className={`rounded-full py-2 px-4 border-2 border-daisy-bush-500 flex gap-x-2`}
+              className={`mb-2 rounded-full py-2 px-4 border-2 border-daisy-bush-500 flex gap-x-2`}
             >
               <span className="font-medium">
                 {file?.file?.split("/")?.reverse()[0]?.split("_")?.join(" ")}
@@ -109,7 +109,7 @@ const ChatContent = ({
           {/* <HiOutlinePlusCircle className="cursor-pointer text-neutral-200 w-8 h-8" /> */}
         </div>
 
-        <div className={`flex gap-x-4`}>
+        <div className={`max-w-6xl mx-auto w-full flex gap-x-4  `}>
           <div className="w-10 h-10 bg-neutral-100 rounded-full">
             {data?.profile.profile_photo ? (
               <Image
@@ -128,14 +128,14 @@ const ChatContent = ({
             )}
           </div>
 
-          <div className={`w-full flex flex-col gap-y-2`}>
+          <div className={` flex flex-col gap-y-2 `}>
             <span>{userText}</span>
           </div>
         </div>
       </div>
 
-      <div className={`py-4 px-4 md:px-16 flex flex-col gap-y-4`}>
-        <div className={`flex gap-x-4`}>
+      <div className={` py-4 px-4 md:px-16 flex flex-col gap-y-4  `}>
+        <div className={`max-w-6xl mx-auto w-full flex gap-x-4  `}>
           <div className={`w-10 h-10`}>
             <Robot className="w-full h-full" color="#A4A4FD" />
           </div>

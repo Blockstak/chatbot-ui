@@ -1,0 +1,12 @@
+@keyframes progressAnimation {
+  0% {
+    margin-left: -100%;
+  }
+  100% {
+    margin-left: 100%;
+  }
+}
+
+.animateProgress {
+  animation: progressAnimation 2s infinite linear;
+}

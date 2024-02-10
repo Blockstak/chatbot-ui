@@ -20,7 +20,7 @@ export default function Sidebar() {
             x: "100%",
           }}
           transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-          className="fixed bg-neutral-900 top-0 right-0 text-daisy-bush-50 w-full max-w-sm h-screen overflow-auto"
+          className="fixed bg-surface-secondary top-0 right-0 text-daisy-bush-50 w-full max-w-sm h-screen overflow-auto"
         >
           <div className="flex justify-between items-center border-b border-neutral-200 px-4 py-6">
             <h2 className="text-lg font-medium">Sources</h2>

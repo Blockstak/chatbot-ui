@@ -8,7 +8,7 @@
 
 html,
 body {
-  background-color: #272727;
+  background-color: #1b1825;
 }
 
 :root {
@@ -18,7 +18,7 @@ body {
 }
 
 .custom-container {
-  min-height: calc(100vh - 6rem);
+  min-height: calc(100vh - 2rem);
 }
 
 .custom-container-2 {
@@ -88,4 +88,9 @@ body {
   100% {
     background-color: rgba(152, 128, 255, 0.2);
   }
+}
+
+/* ========== progress bar ========= */
+.progress-bar {
+  transition: width 0.5s ease-out;
 }

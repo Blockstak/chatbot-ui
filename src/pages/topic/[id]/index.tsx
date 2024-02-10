@@ -14,10 +14,10 @@ function TopicId() {
   return (
     <Layout>
       <Sidebar />
-      <div className="relative md:ml-[20rem]">
-        <div className="min-h-screen relative">
-          <Header />
-          <div className="relative mx-auto w-full bg-neutral-800 custom-container h-full flex items-end">
+      <div className="relative md:ml-[18.5rem]">
+        <div className="min-h-screen relative ">
+          {/* <Header /> */}
+          <div className="relative mx-auto w-full custom-container h-full flex items-end ">
             <Chat />
           </div>
         </div>
@@ -27,5 +27,5 @@ function TopicId() {
   );
 }
 
-// export default withAuth(TopicId);
-export default TopicId;
+export default withAuth(TopicId);
+// export default TopicId;

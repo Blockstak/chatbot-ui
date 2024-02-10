@@ -12,6 +12,17 @@ export type LoginFormData = {
   password: string;
 };
 
+export type UpdateNameFormData = {
+  first_name: string;
+  last_name: string;
+};
+
+export type UpdatePasswordFormData = {
+  new_password: string;
+  old_password: string;
+};
+export type UpdatePhotoFormData = any;
+
 export type RegisterFormData = {
   email: string;
   username: string;
@@ -21,7 +32,7 @@ export type RegisterFormData = {
   first_name?: string;
 };
 
-export type LoginRespose = { refresh: string; access: string };
+export type LoginResponse = { refresh: string; access: string };
 
 export type RegisterResponse = {
   username: string;
@@ -47,4 +58,16 @@ export type ProfileResponse = {
   last_name: string;
   is_active: boolean;
   first_name: string;
+};
+
+export type UpdateNameResponse = {
+  first_name: string;
+  last_name: string;
+};
+
+export type UpdatePasswordResponse = {
+  status: string;
+};
+export type UpdatePhotoResponse = {
+  profile_photo: string;
 };

@@ -14,7 +14,7 @@ const AuthContainer = ({
 }) => {
   return (
     <section
-      className={`flex flex-col items-center justify-center bg-[#272727] min-h-screen`}
+      className={`flex flex-col items-center justify-center bg-surface-primary min-h-screen`}
     >
       <div
         className={`${
