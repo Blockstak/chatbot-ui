@@ -11,7 +11,6 @@ import { useLazyChatQuery } from "@/api/chatbot/chat";
 const Questions = ({ viewAll }: { viewAll: boolean }) => {
   const router = useRouter();
   const { data: questions, isLoading } = useGetQuestionsQuery();
-  console.log("questions --", questions);
 
   const dispatch = useAppDispatch();
 
@@ -78,7 +77,7 @@ const Questions = ({ viewAll }: { viewAll: boolean }) => {
     <div className="">
       {viewAll ? (
         <div className="grid grid-cols-2 items-center gap-5 mt-6">
-          {questions?.results.map((question, index) => (
+          {questions?.results?.map((question, index) => (
             <button
               onClick={() => initiateChat(question.text)}
               key={index}
@@ -90,7 +89,7 @@ const Questions = ({ viewAll }: { viewAll: boolean }) => {
         </div>
       ) : (
         <div className="flex items-center gap-5 mt-6 flex-wrap">
-          {questions?.results.slice(0, 5).map((question, index) => (
+          {questions?.results?.slice(0, 5).map((question, index) => (
             <div
               key={index}
               className="text-sm font-medium p-3 border border-daisy-bush-300 rounded-l-xl rounded-tr-xl"

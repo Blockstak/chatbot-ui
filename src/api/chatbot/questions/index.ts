@@ -16,9 +16,9 @@ export const questionsApi = rootApi.injectEndpoints({
       invalidatesTags: ["Topics"],
     }),
 
-    getQuestions: builder.query<QuestionResponse, number>({
+    getQuestions: builder.query<QuestionResponse, void>({
       query: (pageNumber) => ({
-        url: `/chatbot/questions/?page=${pageNumber}`,
+        url: `/chatbot/questions/`,
       }),
       providesTags: ["Topics"],
     }),
