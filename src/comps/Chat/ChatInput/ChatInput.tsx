@@ -302,12 +302,11 @@ const ChatInput = () => {
     });
 
     await Promise.all(uploadPromises);
-  }, [files, topicId, uploadFilesMutation, processDocsMutation]);
+  }, [files, refetch, topicId, uploadFilesMutation, processDocsMutation]);
 
   useLayoutEffect(adjustHeight, []);
 
   useEffect(() => {
-    console.log("router change files", files);
     setFiles([]);
   }, [topicId]);
 

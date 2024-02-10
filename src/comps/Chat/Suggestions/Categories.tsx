@@ -26,10 +26,8 @@ const Categories = () => {
   const { data: categories, isLoading: loadingCategories } =
     useGetCategoriesQuery();
 
-  const { data: questions, isLoading: loadingQuestions } = useGetQuestionsQuery(
-    activePage,
-    { skip }
-  );
+  const { data: questions, isLoading: loadingQuestions } =
+    useGetQuestionsQuery();
 
   const dispatch = useAppDispatch();
   const router = useRouter();
