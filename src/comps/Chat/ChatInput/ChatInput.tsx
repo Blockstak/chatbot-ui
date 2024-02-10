@@ -427,11 +427,10 @@ const ChatInput = () => {
                 <FileUploadFailed singleFile={enhancedFile} />
               )}
 
-              {enhancedFile.status === "uploaded" ||
-                enhancedFile.status === "processing" ||
-                (enhancedFile.status === "processed" && (
-                  <>{<FileUploaded file={enhancedFile.file} />}</>
-                ))}
+              {enhancedFile.status === "uploaded" && (
+                <FileUploaded file={enhancedFile.file} />
+              )}
+
               {enhancedFile.status === "processing" && (
                 <>{<FileProcessing file={enhancedFile.file} />}</>
               )}
@@ -544,8 +543,8 @@ const ChatInput = () => {
           minimizeInputBar ? "max-h-0" : "max-h-[1500px]"
         } duration-300 overflow-hidden`}
       >
-        {data?.results?.length !== 0 && renderFiles()}
-        {/* {Array.from(files).length !== 0 && renderFiles()} */}
+        {/* {data?.results?.length !== 0 && renderFiles()} */}
+        {Array.from(files).length !== 0 && renderFiles()}
       </div>
 
       {/* ==========  */}
