@@ -97,7 +97,7 @@ const ChatContent = ({
           {files?.results.map((file, index) => (
             <div
               key={index}
-              className={`rounded-full py-2 px-4 border-2 border-daisy-bush-500 flex gap-x-2`}
+              className={`mb-2 rounded-full py-2 px-4 border-2 border-daisy-bush-500 flex gap-x-2`}
             >
               <span className="font-medium">
                 {file?.file?.split("/")?.reverse()[0]?.split("_")?.join(" ")}

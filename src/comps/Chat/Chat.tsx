@@ -44,7 +44,7 @@ const Chat = () => {
   // refetch
   console.log("data----------", data);
   return (
-    <div className="text-neutral-200 w-full custom-container-2 flex flex-col justify-between relative">
+    <div className="text-neutral-200 w-full custom-container-2 flex flex-col justify-between relative ">
       {!isLoading && data?.results?.length !== 0 && <Categories />}
 
       <div className="">

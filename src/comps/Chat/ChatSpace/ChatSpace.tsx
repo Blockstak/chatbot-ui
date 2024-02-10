@@ -8,7 +8,7 @@ const ChatSpace = () => {
   const { chat } = useAppSelector((state) => state.chat);
 
   return (
-    <div className="flex flex-col gap-y-2  ">
+    <div className="flex flex-col gap-y-2">
       {chat &&
         chat
           ?.filter((item) => item.topic === Number(topicId))

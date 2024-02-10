@@ -12,6 +12,7 @@ import { PiSpinnerBold } from "react-icons/pi";
 import { IoCloudUploadOutline } from "react-icons/io5";
 
 import { TbReload } from "react-icons/tb";
+import axios from "axios";
 
 import {
   useRef,
@@ -50,6 +51,7 @@ import FileUploadFailed from "@/comps/ui/FileUploadStatus/FileUploadFailed";
 import FileUploaded from "@/comps/ui/FileUploadStatus/FileUploaded";
 import FileProcessing from "@/comps/ui/FileUploadStatus/FileProcessing";
 import FileProcessed from "@/comps/ui/FileUploadStatus/FileProcessed";
+import { getToken } from "@/utils/token";
 
 const statusEnum = {
   idle: null,
@@ -97,9 +99,12 @@ const ChatInput = () => {
   const [uploaded, setUploaded] = useState(false);
   const [minimizeInputBar, setMinimizeInputBar] = useState(false);
   const topicId = router.query.id as unknown as number;
-  const { data } = useGetFilesByTopicIdQuery(topicId as unknown as string, {
-    skip,
-  });
+  const { data, refetch } = useGetFilesByTopicIdQuery(
+    topicId as unknown as string,
+    {
+      skip,
+    }
+  );
 
   const { viewSuggestions } = useAppSelector((state) => state.ui);
 
@@ -116,7 +121,7 @@ const ChatInput = () => {
       | "processing"
       | "upload_failed"
       | "process_failed";
-    errorMessage?: string; // Optional, for storing error messages if any
+    progress?: number; // Optional, for storing error messages if any
   }
   type FilesState = EnhancedFile[];
   const [files, setFiles] = useState<FilesState>([]);
@@ -207,7 +212,7 @@ const ChatInput = () => {
     new Promise((resolve) => setTimeout(resolve, ms));
 
   const uploadFiles = useCallback(async () => {
-    // Early return if there's nothing to upload
+    const token = getToken();
     if (files.length === 0) return;
 
     // Map through files and upload them individually
@@ -218,18 +223,45 @@ const ChatInput = () => {
 
       try {
         // Start uploading
-        setFiles((prevFiles) =>
-          prevFiles.map((file, fileIndex) =>
-            fileIndex === index ? { ...file, status: "uploading" } : file
-          )
-        );
+        // setFiles((prevFiles) =>
+        //   prevFiles.map((file, fileIndex) =>
+        //     fileIndex === index ? { ...file, status: "uploading" } : file
+        //   )
+        // );
 
-        await delay(5000);
+        const response = await axios({
+          method: "post",
+          url: `${process.env.API_URL}/chatbot/files/`,
+          data: formData,
+          onUploadProgress: (progressEvent) => {
+            const total = progressEvent.total ? progressEvent.total : 1; // Fallback to 1 to avoid division by 0
+            const percentCompleted = Math.round(
+              (progressEvent.loaded * 100) / total
+            );
+            console.log(`${enhancedFile.file.name}: ${percentCompleted}%`);
+            // Update the file's upload progress in state here, if necessary
+            setFiles((prevFiles) =>
+              prevFiles.map((file, fileIndex) =>
+                fileIndex === index
+                  ? { ...file, status: "uploading", progress: percentCompleted }
+                  : file
+              )
+            );
+          },
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`, // Add the Authorization header
+          },
+        });
 
-        const res = await uploadFilesMutation(formData).unwrap();
+        console.log("response--", response);
+
+        // const res = await uploadFilesMutation(formData).unwrap();
 
         // Check upload success and process document
-        if (res) {
+        // await delay(5000);
+
+        if (response.data) {
           setFiles((prevFiles) =>
             prevFiles.map((file, fileIndex) =>
               fileIndex === index ? { ...file, status: "processing" } : file
@@ -240,6 +272,8 @@ const ChatInput = () => {
           const processDocsResponse = await processDocsMutation({
             id: topicId,
           }).unwrap();
+
+          // setSkip(false);
           if (processDocsResponse.msg === "Documents have processed!") {
             setFiles((prevFiles) =>
               prevFiles.map((file, fileIndex) =>
@@ -258,11 +292,12 @@ const ChatInput = () => {
               ? {
                   ...file,
                   status: "error",
-                  // errorMessage: error?.message,
                 }
               : file
           )
         );
+      } finally {
+        refetch();
       }
     });
 
@@ -270,10 +305,6 @@ const ChatInput = () => {
   }, [files, topicId, uploadFilesMutation, processDocsMutation]);
 
   useLayoutEffect(adjustHeight, []);
-
-  useEffect(() => {
-    console.log("files", files);
-  }, [files]);
 
   useEffect(() => {
     console.log("router change files", files);
@@ -389,28 +420,28 @@ const ChatInput = () => {
           {files.map((enhancedFile, index) => (
             <div key={index} className="w-full font-medium">
               {enhancedFile.status === "uploading" && (
-                <FileUploading file={enhancedFile.file} />
+                <FileUploading singleFile={enhancedFile} />
               )}
 
-              {["upload_failed", "process_failed", "error"].includes(
-                enhancedFile.status
-              ) && (
-                <FileUploadFailed
-                  file={enhancedFile.file}
-                  message={enhancedFile.errorMessage || "Error"}
-                />
+              {enhancedFile.status === "upload_failed" && (
+                <FileUploadFailed singleFile={enhancedFile} />
               )}
+
+              {enhancedFile.status === "uploaded" ||
+                enhancedFile.status === "processing" ||
+                (enhancedFile.status === "processed" && (
+                  <>{<FileUploaded file={enhancedFile.file} />}</>
+                ))}
               {enhancedFile.status === "processing" && (
-                <>
-                  {<FileUploaded file={enhancedFile.file} />}
-                  {<FileProcessing file={enhancedFile.file} />}
-                </>
+                <>{<FileProcessing file={enhancedFile.file} />}</>
               )}
+
+              {enhancedFile.status === "process_failed" && (
+                <FileUploadFailed singleFile={enhancedFile} />
+              )}
+
               {enhancedFile.status === "processed" && (
-                <>
-                  {<FileUploaded file={enhancedFile.file} />}
-                  {<FileProcessed file={enhancedFile.file} />}
-                </>
+                <>{<FileProcessed file={enhancedFile.file} />}</>
               )}
             </div>
           ))}
@@ -421,6 +452,7 @@ const ChatInput = () => {
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = event.target.files;
+    console.log("selectedFiles--", selectedFiles);
     if (selectedFiles) {
       const enhancedFiles: FilesState = Array.from(selectedFiles).map(
         (file) => ({
@@ -509,11 +541,14 @@ const ChatInput = () => {
 
       <div
         className={`${
-          minimizeInputBar ? "max-h-0" : "max-h-[300px]"
+          minimizeInputBar ? "max-h-0" : "max-h-[1500px]"
         } duration-300 overflow-hidden`}
       >
-        {Array.from(files).length !== 0 && renderFiles()}
+        {data?.results?.length !== 0 && renderFiles()}
+        {/* {Array.from(files).length !== 0 && renderFiles()} */}
       </div>
+
+      {/* ==========  */}
 
       {Array.from(files).length === 0 && data?.results?.length === 0 && (
         <div className="my-4 w-full p-5 rounded-lg justify-start items-center gap-3 inline-flex">
@@ -531,7 +566,11 @@ const ChatInput = () => {
             onClick={() => setMinimizeInputBar(!minimizeInputBar)}
             className="bg-neutral-800 rounded-full p-1"
           >
-            <MdKeyboardArrowDown className="text-daisy-bush-400 text-3xl rotate-180" />
+            <MdKeyboardArrowDown
+              className={`${
+                minimizeInputBar ? "rotate-0" : "rotate-180"
+              } text-daisy-bush-400 text-3xl duration-300`}
+            />
           </button>
         </div>
       )}
